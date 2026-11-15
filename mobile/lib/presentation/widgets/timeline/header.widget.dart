@@ -60,23 +60,31 @@ class TimelineHeader extends HookWidget {
           children: [
             if (isMonthHeader)
               Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Flexible(
-                    child: Text(
-                      toBeginningOfSentenceCase(_monthName(date)),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.headlineMedium?.copyWith(color: tokens.ink, height: 1.1),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            toBeginningOfSentenceCase(_monthName(date)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.headlineMedium?.copyWith(color: tokens.ink, height: 1.1),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          date.year.toString(),
+                          style: textTheme.titleMedium?.copyWith(
+                            color: tokens.inkSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Text(
-                    date.year.toString(),
-                    style: textTheme.titleMedium?.copyWith(color: tokens.inkSecondary, fontWeight: FontWeight.w500),
-                  ),
-                  const Spacer(),
                   if (header != HeaderType.monthAndDay) _BulkSelectIconButton(bucket: bucket, assetOffset: assetOffset),
                 ],
               ),
