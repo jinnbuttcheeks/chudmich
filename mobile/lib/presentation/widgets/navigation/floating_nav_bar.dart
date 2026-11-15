@@ -28,6 +28,10 @@ class FloatingNavBar extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelected;
 
+  /// Key of the glass lens behind the active tab.
+  @visibleForTesting
+  static const activePillKey = ValueKey<String>('nav_active_pill');
+
   /// How much wider the active tab is than an inactive one (in inactive tab units).
   static const double activeExtraWeight = 1.35;
 
@@ -186,6 +190,7 @@ class _FloatingNavBarState extends State<FloatingNavBar> with TickerProviderStat
             top: 0,
             bottom: 0,
             child: GlassSurface(
+              key: FloatingNavBar.activePillKey,
               variant: GlassVariant.lens,
               radius: PremiumTokens.radiusPill,
               tint: tokens.onActivePill,

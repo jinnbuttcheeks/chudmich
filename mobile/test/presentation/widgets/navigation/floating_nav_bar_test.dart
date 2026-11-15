@@ -67,21 +67,21 @@ void main() {
     testWidgets('moves the pill to the new tab after a selection change', (tester) async {
       await tester.pumpWidget(_host(selected: 0, onSelected: (_) {}));
       await tester.pumpAndSettle();
-      final before = tester.getTopLeft(find.byType(DecoratedBox).last).dx;
+      final before = tester.getTopLeft(find.byKey(FloatingNavBar.activePillKey)).dx;
 
       await tester.pumpWidget(_host(selected: 1, onSelected: (_) {}));
       await tester.pumpAndSettle();
       expect(find.text('Search'), findsOneWidget);
-      expect(tester.getTopLeft(find.byType(DecoratedBox).last).dx, isNot(before));
+      expect(tester.getTopLeft(find.byKey(FloatingNavBar.activePillKey)).dx, isNot(before));
     });
 
     testWidgets('jumps straight to the target when motion is reduced', (tester) async {
       await tester.pumpWidget(_host(selected: 0, onSelected: (_) {}, reduceMotion: true));
       await tester.pumpAndSettle();
       await tester.pumpWidget(_host(selected: 2, onSelected: (_) {}, reduceMotion: true));
-      final immediate = tester.getTopLeft(find.byType(DecoratedBox).last).dx;
+      final immediate = tester.getTopLeft(find.byKey(FloatingNavBar.activePillKey)).dx;
       await tester.pumpAndSettle();
-      expect(tester.getTopLeft(find.byType(DecoratedBox).last).dx, immediate);
+      expect(tester.getTopLeft(find.byKey(FloatingNavBar.activePillKey)).dx, immediate);
     });
   });
 }
