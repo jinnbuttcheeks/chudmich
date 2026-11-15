@@ -81,10 +81,43 @@ jobs:
       - name: Perform codegen
         run: mise //mobile:codegen
 
-      # No keystore is created, so Gradle falls back to the debug signing config.
+      # The permanent release key lives in repo secrets. It is decoded straight to a file
+      # (never echoed) and removed again in the always() step at the end of the job.
+      - name: Check signing secrets
+        id: signing
+        env:
+          KEYSTORE_B64: ${{ secrets.PREMIUM_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::PREMIUM_KEYSTORE_B64 is missing or empty. The APK is built with the debug key and no release will be published. Sign and publish it manually."
+          fi
+
+      - name: Decode release keystore
+        if: steps.signing.outputs.enabled == 'true'
+        env:
+          KEYSTORE_B64: ${{ secrets.PREMIUM_KEYSTORE_B64 }}
+        run: |
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > mobile/android/key.jks
+          test -s mobile/android/key.jks || { echo "::error::Decoded keystore is empty"; exit 1; }
+
+      # build.gradle fails the build when key.jks is present but the passwords or alias do not open it.
       - name: Build release APK
         working-directory: ./mobile
+        env:
+          ALIAS: ${{ secrets.PREMIUM_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.PREMIUM_KEY_PASSWORD }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.PREMIUM_STORE_PASSWORD }}
         run: flutter build apk --release
+
+      - name: Verify APK signature
+        if: steps.signing.outputs.enabled == 'true'
+        run: |
+          APKSIGNER="$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
+          "$APKSIGNER" verify --print-certs mobile/build/app/outputs/flutter-apk/app-release.apk \
+            | grep -i "certificate SHA-256 digest" | head -n 1
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -93,8 +126,9 @@ jobs:
           path: mobile/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
 
+      # Only a properly signed APK is ever published.
       - name: Publish prerelease
-        if: github.ref_type == 'tag'
+        if: github.ref_type == 'tag' && steps.signing.outputs.enabled == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
@@ -105,6 +139,15 @@ jobs:
             --title "$TAG" \
             --prerelease \
             --generate-notes
+
+      - name: Skip release without signing secrets
+        if: github.ref_type == 'tag' && steps.signing.outputs.enabled != 'true'
+        run: |
+          echo "::warning::Not publishing a release for ${GITHUB_REF_NAME} because signing secrets are missing. The debug-signed APK is only attached to the workflow run."
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f mobile/android/key.jks
 
       - name: Save Rust Cache
         if: steps.cache-rust-restore.outputs.cache-hit != 'true'
