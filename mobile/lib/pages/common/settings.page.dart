@@ -6,7 +6,10 @@ import 'package:immich_mobile/data/store.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/generated/translations.g.dart';
 import 'package:immich_mobile/providers/auth.provider.dart';
+import 'package:immich_mobile/providers/user.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
+import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/widgets/common/user_circle_avatar.dart';
 import 'package:immich_mobile/widgets/settings/advanced_settings.dart';
 import 'package:immich_mobile/widgets/settings/asset_list_settings/asset_list_settings.dart';
 import 'package:immich_mobile/widgets/settings/asset_viewer_settings/asset_viewer_settings.dart';
@@ -18,7 +21,6 @@ import 'package:immich_mobile/widgets/settings/networking_settings/networking_se
 import 'package:immich_mobile/widgets/settings/notification_setting.dart';
 import 'package:immich_mobile/widgets/settings/passkey_settings.dart';
 import 'package:immich_mobile/widgets/settings/preference_settings/preference_setting.dart';
-import 'package:immich_ui/immich_ui.dart';
 
 enum SettingSection {
   advanced(Icons.build_outlined),
@@ -92,47 +94,138 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(centerTitle: false, title: Text(context.t.settings)),
-      body: context.isMobile ? const _MobileLayout() : const _TabletLayout(),
+    return AmbientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: context.isMobile
+            ? AppBar(centerTitle: false)
+            : AppBar(centerTitle: false, title: Text(context.t.settings)),
+        body: context.isMobile ? const _MobileLayout() : const _TabletLayout(),
+      ),
+    );
+  }
+}
+
+/// Colour of each section's icon badge.
+Color _badgeColor(SettingSection section) => switch (section) {
+  SettingSection.advanced => const Color(0xFF8E8E93),
+  SettingSection.assetViewer => const Color(0xFF3D8BFF),
+  SettingSection.backup => const Color(0xFF34C759),
+  SettingSection.freeUpSpace => const Color(0xFFFF9F0A),
+  SettingSection.languages => const Color(0xFF5E5CE6),
+  SettingSection.networking => const Color(0xFF30B0C7),
+  SettingSection.notifications => const Color(0xFFFF453A),
+  SettingSection.passkeys => const Color(0xFFBF5AF2),
+  SettingSection.preferences => const Color(0xFFFF375F),
+  SettingSection.timeline => const Color(0xFF0A84FF),
+  SettingSection.beta => const Color(0xFF64D2FF),
+};
+
+class _ProfileHeader extends ConsumerWidget {
+  const _ProfileHeader();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final tokens = context.glass;
+    final textTheme = context.textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: GlassSurface(
+        blur: false,
+        shadow: false,
+        radius: 28,
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            if (user != null) UserCircleAvatar(size: 56, user: user, hasBorder: true),
+            if (user != null) const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user?.name ?? context.t.settings,
+                    style: textTheme.titleLarge?.copyWith(color: tokens.ink, fontSize: 22),
+                  ),
+                  if (user != null)
+                    Text(
+                      user.email,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(color: tokens.inkSecondary),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class _MobileLayout extends ConsumerWidget {
   const _MobileLayout();
+
+  static const _groups = <List<SettingSection>>[
+    [SettingSection.backup, SettingSection.freeUpSpace, SettingSection.beta, SettingSection.passkeys],
+    [
+      SettingSection.preferences,
+      SettingSection.timeline,
+      SettingSection.assetViewer,
+      SettingSection.languages,
+      SettingSection.notifications,
+    ],
+    [SettingSection.networking, SettingSection.advanced],
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<Widget> settings = SettingSection.visible(ref)
-        .expand(
-          (setting) => setting == SettingSection.beta
-              ? [
-                  SettingsCard(
-                    icon: Icons.sync_outlined,
-                    title: context.t.sync_status,
-                    subtitle: context.t.sync_status_subtitle,
-                    onTap: () => context.pushRoute(const SyncStatusRoute()),
-                  ),
-                ]
-              : [
-                  SettingsCard(
-                    title: setting.title(context.t),
-                    subtitle: setting.subtitle(context.t),
-                    icon: setting.icon,
-                    onTap: () => context.pushRoute(SettingsSubRoute(section: setting)),
-                  ),
-                ],
-        )
-        .toList();
-    settings.add(
-      SettingsCard(
-        icon: Icons.auto_awesome_outlined,
-        title: context.t.whats_new,
-        subtitle: context.t.whats_new_settings_subtitle,
-        onTap: () => context.pushRoute(const WhatsNewRoute()),
+    final visible = SettingSection.visible(ref).toSet();
+    final tokens = context.glass;
+
+    Widget tile(SettingSection setting) => GlassGroupTile(
+      icon: setting.icon,
+      iconColor: _badgeColor(setting),
+      title: setting == SettingSection.beta ? context.t.sync_status : setting.title(context.t),
+      subtitle: setting == SettingSection.beta ? context.t.sync_status_subtitle : setting.subtitle(context.t),
+      onTap: () => context.pushRoute(
+        setting == SettingSection.beta ? const SyncStatusRoute() : SettingsSubRoute(section: setting),
       ),
     );
-    return ListView(padding: const EdgeInsets.only(top: 10.0, bottom: 60), children: [...settings]);
+
+    return GlassLightScrollDriver(
+      child: ListView(
+        padding: const EdgeInsets.only(bottom: 60),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+            child: Text(context.t.settings, style: context.textTheme.headlineLarge?.copyWith(color: tokens.ink)),
+          ),
+          const _ProfileHeader(),
+          for (final group in _groups)
+            if (group.any(visible.contains))
+              GlassGroup(
+                children: [
+                  for (final s in group)
+                    if (visible.contains(s)) tile(s),
+                ],
+              ),
+          GlassGroup(
+            children: [
+              GlassGroupTile(
+                icon: Icons.auto_awesome_rounded,
+                iconColor: const Color(0xFFFFD60A),
+                title: context.t.whats_new,
+                subtitle: context.t.whats_new_settings_subtitle,
+                onTap: () => context.pushRoute(const WhatsNewRoute()),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -186,9 +279,13 @@ class SettingsSubPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(centerTitle: false, title: Text(section.title(context.t))),
-      body: section.widget,
+    return AmbientBackground(
+      intensity: 0.7,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(centerTitle: false, title: Text(section.title(context.t))),
+        body: section.widget,
+      ),
     );
   }
 }
