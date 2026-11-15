@@ -15,6 +15,7 @@ import 'package:immich_mobile/providers/locale_provider.dart';
 import 'package:immich_mobile/providers/user.provider.dart';
 import 'package:immich_mobile/providers/websocket.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
+import 'package:immich_mobile/theme/glass/glass.dart';
 import 'package:immich_mobile/utils/bytes_units.dart';
 import 'package:immich_mobile/widgets/common/app_bar_dialog/app_bar_profile_info.dart';
 import 'package:immich_mobile/widgets/common/app_bar_dialog/app_bar_server_info.dart';
@@ -255,7 +256,8 @@ class ImmichAppBarDialog extends HookConsumerWidget {
       onDismissed: (_) => ContextHelper(context).pop(),
       key: const Key('app_bar_dialog'),
       child: Dialog(
-        clipBehavior: Clip.hardEdge,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         alignment: Alignment.topCenter,
         insetPadding: EdgeInsets.only(
           top: isHorizontal ? 20 : 40,
@@ -263,27 +265,30 @@ class ImmichAppBarDialog extends HookConsumerWidget {
           right: horizontalPadding,
           bottom: isHorizontal ? 20 : 100,
         ),
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
-        child: SizedBox(
+        child: GlassSurface(
+          variant: GlassVariant.thick,
+          essential: true,
+          radius: 34,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(padding: const EdgeInsets.symmetric(horizontal: 8), child: buildTopRow()),
-                Container(
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.surface,
-                    borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  ),
-                  margin: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
-                  child: Column(
-                    children: [
-                      const AppBarProfileInfoBox(),
-                      Divider(thickness: 4, color: context.colorScheme.surfaceContainer),
-                      buildStorageInformation(),
-                      Divider(thickness: 4, color: context.colorScheme.surfaceContainer),
-                      const AppBarServerInfo(),
-                    ],
+                Padding(
+                  padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
+                  child: GlassSurface(
+                    blur: false,
+                    shadow: false,
+                    radius: 24,
+                    child: Column(
+                      children: [
+                        const AppBarProfileInfoBox(),
+                        Divider(thickness: 0.5, height: 0.5, color: context.glass.ink.withValues(alpha: 0.1)),
+                        buildStorageInformation(),
+                        Divider(thickness: 0.5, height: 0.5, color: context.glass.ink.withValues(alpha: 0.1)),
+                        const AppBarServerInfo(),
+                      ],
+                    ),
                   ),
                 ),
                 if (isReadonlyModeEnabled) buildReadonlyMessage(),

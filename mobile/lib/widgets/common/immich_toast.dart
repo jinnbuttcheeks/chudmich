@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
+import 'package:immich_mobile/theme/glass/glass.dart';
 
 enum ToastType { info, success, error }
 
@@ -28,13 +29,10 @@ class ImmichToast {
     };
 
     fToast.showToast(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-          color: context.colorScheme.surfaceContainer,
-          border: Border.all(color: context.colorScheme.outline.withValues(alpha: .5), width: 1),
-        ),
+      child: GlassSurface(
+        essential: true,
+        radius: 24,
+        padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 13.0),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
