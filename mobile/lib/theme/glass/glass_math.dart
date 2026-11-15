@@ -14,6 +14,9 @@ enum GlassVariant {
 
   /// Sheets and dialogs.
   thick,
+
+  /// Active-tab lens: barely blurs, brightens and saturates what is under it.
+  lens,
 }
 
 /// Numeric recipe for one [GlassVariant] in one brightness.
@@ -81,6 +84,18 @@ class GlassSpec {
           shadowAlpha: dark ? 0.42 : 0.16,
           shadowBlur: 28,
           fallbackTintAlpha: dark ? 0.82 : 0.88,
+        );
+      case GlassVariant.lens:
+        return GlassSpec(
+          sigma: 2.5,
+          tintAlpha: dark ? 0.26 : 0.30,
+          saturation: 1.5,
+          brightness: dark ? 0.09 : 0.10,
+          rimAlpha: dark ? 0.80 : 0.95,
+          glowAlpha: dark ? 0.22 : 0.40,
+          shadowAlpha: dark ? 0.30 : 0.10,
+          shadowBlur: 12,
+          fallbackTintAlpha: dark ? 0.50 : 0.60,
         );
       case GlassVariant.thick:
         return GlassSpec(

@@ -252,3 +252,90 @@ class _RimPainter extends CustomPainter {
   @override
   bool shouldRepaint(_RimPainter old) => old.tokens != tokens || old.spec != spec || old.radius != radius;
 }
+
+/// Full-width glass strip for app bars and bottom bars. [condense] (0..1)
+/// fades the material in as content scrolls under it: at 0 the bar is clear,
+/// at 1 it is full glass with a rim line on the [edge] facing the content.
+class GlassBar extends StatefulWidget {
+  const GlassBar({
+    super.key,
+    this.condense = 1,
+    this.edge = Alignment.bottomCenter,
+    this.variant = GlassVariant.regular,
+    this.budget,
+    this.child,
+  });
+
+  final double condense;
+
+  /// Side that carries the hairline (bottom for top bars, top for bottom bars).
+  final Alignment edge;
+  final GlassVariant variant;
+  final GlassLayerBudget? budget;
+  final Widget? child;
+
+  @override
+  State<GlassBar> createState() => _GlassBarState();
+}
+
+class _GlassBarState extends State<GlassBar> {
+  bool _slot = false;
+  GlassLayerBudget get _budget => widget.budget ?? GlassLayerBudget.shared;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _update();
+  }
+
+  @override
+  void didUpdateWidget(GlassBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _update();
+  }
+
+  void _update() {
+    // A clear bar does not need a layer; only take a slot once it condenses.
+    final want = widget.condense > 0.02 && TickerMode.valuesOf(context).enabled;
+    _slot = want && _budget.tryAcquire(this);
+    if (!_slot) {
+      _budget.release(this);
+    }
+  }
+
+  @override
+  void dispose() {
+    _budget.release(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.glass;
+    final spec = GlassSpec.of(widget.variant, tokens.brightness);
+    final t = widget.condense.clamp(0.0, 1.0);
+    final alpha = (_slot ? spec.tintAlpha : spec.fallbackTintAlpha) * t;
+    return RepaintBoundary(
+      child: ClipRect(
+        child: BackdropFilter(
+          enabled: _slot,
+          filter: GlassMath.backdropFilter(spec),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: tokens.tint.withValues(alpha: alpha),
+              border: Border(
+                bottom: widget.edge.y > 0
+                    ? BorderSide(color: tokens.highlight.withValues(alpha: spec.rimAlpha * 0.35 * t), width: 0.7)
+                    : BorderSide.none,
+                top: widget.edge.y < 0
+                    ? BorderSide(color: tokens.highlight.withValues(alpha: spec.rimAlpha * 0.5 * t), width: 0.7)
+                    : BorderSide.none,
+              ),
+            ),
+            child: widget.child ?? const SizedBox.expand(),
+          ),
+        ),
+      ),
+    );
+  }
+}

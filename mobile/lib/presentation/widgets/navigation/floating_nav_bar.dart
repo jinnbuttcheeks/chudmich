@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:immich_mobile/presentation/widgets/common/press_scale.dart';
+import 'package:immich_mobile/theme/glass/glass.dart';
 import 'package:immich_mobile/theme/premium_tokens.dart';
 
 class FloatingNavItem {
@@ -69,6 +70,20 @@ class _FloatingNavBarState extends State<FloatingNavBar> with TickerProviderStat
   );
   late final AnimationController _entrance = AnimationController(vsync: this, duration: PremiumMotion.slow);
   late final CurvedAnimation _entranceCurve = CurvedAnimation(parent: _entrance, curve: PremiumMotion.gentle);
+  // The specular rim of the bar follows the active tab like a light sliding under the glass.
+  late final ValueNotifier<Offset> _light = ValueNotifier<Offset>(
+    GlassMath.lightFromTab(widget.selectedIndex.toDouble(), widget.items.length),
+  );
+
+  void _syncLight() {
+    _light.value = GlassMath.lightFromTab(_position.value, widget.items.length);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _position.addListener(_syncLight);
+  }
 
   @override
   void didChangeDependencies() {
@@ -99,6 +114,8 @@ class _FloatingNavBarState extends State<FloatingNavBar> with TickerProviderStat
 
   @override
   void dispose() {
+    _position.removeListener(_syncLight);
+    _light.dispose();
     _position.dispose();
     _entranceCurve.dispose();
     _entrance.dispose();
@@ -129,30 +146,15 @@ class _FloatingNavBarState extends State<FloatingNavBar> with TickerProviderStat
               child: Transform.translate(offset: Offset(0, (1 - t) * 28), child: child),
             );
           },
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(PremiumTokens.radiusPill),
-              boxShadow: [BoxShadow(color: tokens.floatingShadow, blurRadius: 28, offset: const Offset(0, 10))],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(PremiumTokens.radiusPill),
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: PremiumTokens.blurSigma, sigmaY: PremiumTokens.blurSigma),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: tokens.floatingSurface,
-                    borderRadius: BorderRadius.circular(PremiumTokens.radiusPill),
-                    border: Border.all(color: tokens.floatingBorder, width: 0.8),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(PremiumTokens.space1 + 2),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) => AnimatedBuilder(
-                        animation: _position,
-                        builder: (context, _) => _buildTabs(context, constraints.maxWidth, tokens),
-                      ),
-                    ),
-                  ),
+          child: GlassLightScope(
+            light: _light,
+            child: GlassSurface(
+              radius: PremiumTokens.radiusPill,
+              padding: const EdgeInsets.all(PremiumTokens.space1 + 2),
+              child: LayoutBuilder(
+                builder: (context, constraints) => AnimatedBuilder(
+                  animation: _position,
+                  builder: (context, _) => _buildTabs(context, constraints.maxWidth, tokens),
                 ),
               ),
             ),
@@ -183,11 +185,12 @@ class _FloatingNavBarState extends State<FloatingNavBar> with TickerProviderStat
             width: pillWidth,
             top: 0,
             bottom: 0,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: tokens.activePill,
-                borderRadius: BorderRadius.circular(PremiumTokens.radiusPill),
-              ),
+            child: GlassSurface(
+              variant: GlassVariant.lens,
+              radius: PremiumTokens.radiusPill,
+              tint: tokens.onActivePill,
+              shadow: false,
+              child: const SizedBox.expand(),
             ),
           ),
           for (var i = 0; i < count; i++)
@@ -257,9 +260,13 @@ class _NavTab extends StatelessWidget {
                           opacity: 1 - emphasis,
                           child: Icon(item.icon, color: color),
                         ),
+                        // The lens magnifies the active icon slightly.
                         Opacity(
                           opacity: emphasis,
-                          child: Icon(item.selectedIcon, color: color),
+                          child: Transform.scale(
+                            scale: 1 + 0.14 * emphasis,
+                            child: Icon(item.selectedIcon, color: color),
+                          ),
                         ),
                       ],
                     ),
