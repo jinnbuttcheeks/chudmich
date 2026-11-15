@@ -52,8 +52,9 @@ class LibraryPage extends StatelessWidget {
   }
 }
 
+@visibleForTesting
 /// Fixed palette for the dashboard badges, so every collection keeps its own identity.
-abstract final class _Hue {
+abstract final class LibraryHue {
   static const favorites = Color(0xFFFF4D6D);
   static const archive = Color(0xFFFFA62B);
   static const links = Color(0xFF2EC4B6);
@@ -89,8 +90,8 @@ class _LibraryDashboard extends ConsumerWidget {
                   child: Row(
                     children: [
                       Expanded(
-                        child: _BentoCard(
-                          hue: _Hue.favorites,
+                        child: LibraryBentoCard(
+                          hue: LibraryHue.favorites,
                           icon: Icons.favorite_rounded,
                           title: context.t.favorites,
                           hero: true,
@@ -102,8 +103,8 @@ class _LibraryDashboard extends ConsumerWidget {
                         child: Column(
                           children: [
                             Expanded(
-                              child: _BentoCard(
-                                hue: _Hue.archive,
+                              child: LibraryBentoCard(
+                                hue: LibraryHue.archive,
                                 icon: Icons.inventory_2_rounded,
                                 title: context.t.archived,
                                 onTap: () => context.pushRoute(const ArchiveRoute()),
@@ -111,8 +112,8 @@ class _LibraryDashboard extends ConsumerWidget {
                             ),
                             const SizedBox(height: gap),
                             Expanded(
-                              child: _BentoCard(
-                                hue: _Hue.links,
+                              child: LibraryBentoCard(
+                                hue: LibraryHue.links,
                                 icon: Icons.link_rounded,
                                 title: context.t.shared_links,
                                 onTap: () => context.pushRoute(const SharedLinkRoute()),
@@ -143,8 +144,8 @@ class _LibraryDashboard extends ConsumerWidget {
                   const SizedBox(height: gap),
                   SizedBox(
                     height: 64,
-                    child: _BentoCard(
-                      hue: _Hue.trash,
+                    child: LibraryBentoCard(
+                      hue: LibraryHue.trash,
                       icon: Icons.delete_rounded,
                       title: context.t.trash,
                       compact: true,
@@ -163,8 +164,9 @@ class _LibraryDashboard extends ConsumerWidget {
 
 /// Glass card of the dashboard. Cards sit in a scrolling list, so they use
 /// fake glass (tinted gradients) rather than a backdrop filter.
-class _BentoCard extends StatelessWidget {
-  const _BentoCard({
+@visibleForTesting
+class LibraryBentoCard extends StatelessWidget {
+  const LibraryBentoCard({
     required this.hue,
     required this.icon,
     required this.title,
@@ -209,38 +211,49 @@ class _BentoCard extends StatelessWidget {
               if (preview != null) Positioned.fill(child: preview!),
               Padding(
                 padding: EdgeInsets.all(compact ? 14 : 16),
-                child: compact
-                    ? Row(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Short cards (the small ones beside the hero, the trash strip) lay out in a row.
+                    if (compact || constraints.maxHeight < 72) {
+                      return Row(
                         children: [
-                          GlassIconBadge(icon: icon, color: hue, size: 36),
-                          const SizedBox(width: 14),
+                          GlassIconBadge(icon: icon, color: hue, size: compact ? 36 : 32),
+                          const SizedBox(width: 12),
                           Expanded(
-                            child: Text(title, style: textTheme.titleSmall?.copyWith(color: tokens.ink)),
-                          ),
-                          Icon(Icons.chevron_right_rounded, color: tokens.inkSecondary),
-                        ],
-                      )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          GlassIconBadge(icon: icon, color: hue, size: hero ? 44 : 36),
-                          const Spacer(),
-                          Text(
-                            title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: (hero ? textTheme.headlineSmall : textTheme.titleMedium)?.copyWith(
-                              color: tokens.ink,
-                              height: 1.1,
+                            child: Text(
+                              title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: textTheme.titleSmall?.copyWith(color: tokens.ink, height: 1.1),
                             ),
                           ),
-                          if (subtitle != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Text(subtitle!, style: textTheme.bodySmall?.copyWith(color: tokens.inkSecondary)),
-                            ),
+                          if (compact) Icon(Icons.chevron_right_rounded, color: tokens.inkSecondary),
                         ],
-                      ),
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GlassIconBadge(icon: icon, color: hue, size: hero ? 44 : 36),
+                        const Spacer(),
+                        Text(
+                          title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: (hero ? textTheme.headlineSmall : textTheme.titleMedium)?.copyWith(
+                            color: tokens.ink,
+                            height: 1.1,
+                          ),
+                        ),
+                        if (subtitle != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(subtitle!, style: textTheme.bodySmall?.copyWith(color: tokens.inkSecondary)),
+                          ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ],
           ),
@@ -251,8 +264,9 @@ class _BentoCard extends StatelessWidget {
 }
 
 /// Overlapping round previews on the right edge of a wide card.
-class _AvatarStack extends StatelessWidget {
-  const _AvatarStack({required this.children});
+@visibleForTesting
+class LibraryAvatarStack extends StatelessWidget {
+  const LibraryAvatarStack({required this.children});
 
   final List<Widget> children;
   static const double size = 52;
@@ -292,14 +306,14 @@ class _PeopleWideCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final people = ref.watch(Store.people.all());
     final list = people.valueOrNull ?? const [];
-    return _WideCard(
-      hue: _Hue.people,
+    return LibraryWideCard(
+      hue: LibraryHue.people,
       icon: Icons.face_retouching_natural_rounded,
       title: context.t.people,
       onTap: () => context.pushRoute(const PeopleCollectionRoute()),
       trailing: list.isEmpty
           ? null
-          : _AvatarStack(
+          : LibraryAvatarStack(
               children: [
                 for (final person in list.take(4))
                   Image(
@@ -319,14 +333,14 @@ class _MemoriesWideCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final memories = ref.watch(allMemoriesProvider(false));
     final list = memories.valueOrNull ?? const [];
-    return _WideCard(
-      hue: _Hue.memories,
+    return LibraryWideCard(
+      hue: LibraryHue.memories,
       icon: Icons.auto_awesome_rounded,
       title: context.t.memories,
       onTap: () => context.pushRoute(const MemoryListRoute()),
       trailing: list.isEmpty
           ? null
-          : _AvatarStack(
+          : LibraryAvatarStack(
               children: [
                 for (final memory in list.take(4))
                   Thumbnail.remote(
@@ -340,8 +354,15 @@ class _MemoriesWideCard extends ConsumerWidget {
   }
 }
 
-class _WideCard extends StatelessWidget {
-  const _WideCard({required this.hue, required this.icon, required this.title, required this.onTap, this.trailing});
+@visibleForTesting
+class LibraryWideCard extends StatelessWidget {
+  const LibraryWideCard({
+    required this.hue,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.trailing,
+  });
 
   final Color hue;
   final IconData icon;
@@ -388,8 +409,8 @@ class _PlacesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _BentoCard(
-      hue: _Hue.places,
+    return LibraryBentoCard(
+      hue: LibraryHue.places,
       icon: Icons.place_rounded,
       title: context.t.places,
       onTap: () => context.pushRoute(PlaceRoute(currentLocation: null)),
@@ -414,8 +435,8 @@ class _DeviceCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final albums = ref.watch(localAlbumProvider).valueOrNull ?? const [];
-    return _BentoCard(
-      hue: _Hue.device,
+    return LibraryBentoCard(
+      hue: LibraryHue.device,
       icon: Icons.smartphone_rounded,
       title: context.t.on_this_device,
       subtitle: albums.isEmpty ? null : '${albums.length}',
