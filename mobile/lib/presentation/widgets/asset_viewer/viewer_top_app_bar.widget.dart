@@ -17,6 +17,7 @@ import 'package:immich_mobile/providers/infrastructure/current_album.provider.da
 import 'package:immich_mobile/providers/infrastructure/readonly_mode.provider.dart';
 import 'package:immich_mobile/providers/routes.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
+import 'package:immich_mobile/theme/glass/glass.dart';
 import 'package:immich_mobile/utils/timezone.dart';
 import 'package:immich_ui/immich_ui.dart';
 
@@ -42,8 +43,7 @@ class ViewerTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
     }
 
     final showingControls = ref.watch(assetViewerProvider.select((s) => s.showingControls));
-    final double opacity =
-        ref.watch(assetViewerProvider.select((s) => s.backgroundOpacity)) * (showingControls ? 1 : 0);
+    final double backgroundOpacity = ref.watch(assetViewerProvider.select((s) => s.backgroundOpacity));
 
     final originalTheme = context.themeData;
 
@@ -68,45 +68,52 @@ class ViewerTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
     final lockedViewActions = <Widget>[ViewerKebabMenu(originalTheme: originalTheme)];
 
-    return IgnorePointer(
-      ignoring: opacity < 1.0,
-      child: AnimatedOpacity(
-        opacity: opacity,
-        duration: Durations.short2,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: showingDetails
-                        ? null
-                        : const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.black45, Colors.black12, Colors.transparent],
-                            stops: [0.0, 0.7, 1.0],
-                          ),
-                  ),
+    return GlassReveal(
+      visible: showingControls,
+      opacity: backgroundOpacity,
+      offset: const Offset(0, -20),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: showingDetails
+                      ? null
+                      : const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.black38, Colors.black12, Colors.transparent],
+                          stops: [0.0, 0.6, 1.0],
+                        ),
                 ),
               ),
             ),
-            SafeArea(
-              bottom: false,
-              child: SizedBox(
-                height: preferredSize.height,
-                child: Theme(
-                  data: context.themeData.copyWith(iconTheme: const IconThemeData(size: 22, color: Colors.white)),
+          ),
+          SafeArea(
+            bottom: false,
+            child: SizedBox(
+              height: preferredSize.height,
+              child: Theme(
+                data: context.themeData.copyWith(iconTheme: const IconThemeData(size: 22, color: Colors.white)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: NavigationToolbar(
                     centerMiddle: true,
                     leading: const _AppBarBackButton(),
                     middle: showingDetails ? null : _AssetInfoTitle(asset: asset),
                     trailing: !showingDetails && !isReadonlyModeEnabled
-                        ? ImmichColorOverride(
-                            color: Colors.white,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: isInLockedView ? lockedViewActions : actions,
+                        ? GlassSurface(
+                            variant: GlassVariant.thin,
+                            tint: GlassTokens.overPhoto,
+                            radius: 26,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: ImmichColorOverride(
+                              color: Colors.white,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: isInLockedView ? lockedViewActions : actions,
+                              ),
                             ),
                           )
                         : null,
@@ -114,14 +121,14 @@ class ViewerTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(60.0);
+  Size get preferredSize => const Size.fromHeight(68.0);
 }
 
 class _AppBarBackButton extends ConsumerWidget {
@@ -130,17 +137,12 @@ class _AppBarBackButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final showingDetails = ref.watch(assetViewerProvider.select((state) => state.showingDetails));
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: showingDetails ? context.colorScheme.surface : Colors.transparent,
-        shape: const CircleBorder(),
-        iconSize: 22,
-        iconColor: showingDetails ? context.colorScheme.onSurface : Colors.white,
-        padding: const EdgeInsets.all(10.0),
-        elevation: showingDetails ? 4 : 0,
-      ),
+    return GlassIconButton(
+      icon: Icons.arrow_back_rounded,
       onPressed: context.maybePop,
-      child: const Icon(Icons.arrow_back_rounded),
+      tint: showingDetails ? null : GlassTokens.overPhoto,
+      color: showingDetails ? null : Colors.white,
+      blur: false,
     );
   }
 }
@@ -160,12 +162,23 @@ class _AssetInfoTitle extends ConsumerWidget {
     final dateFormatted = dateTime.formatDate();
     final timeFormatted = dateTime.formatTime(alwaysUse24HourFormat: alwaysUse24HourFormat);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(dateFormatted, style: context.textTheme.labelLarge?.copyWith(color: Colors.white)),
-        Text(timeFormatted, style: context.textTheme.labelMedium?.copyWith(color: Colors.white70)),
-      ],
+    return GlassSurface(
+      variant: GlassVariant.thin,
+      tint: GlassTokens.overPhoto,
+      blur: false,
+      shadow: false,
+      radius: 20,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            dateFormatted,
+            style: context.textTheme.labelLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+          ),
+          Text(timeFormatted, style: context.textTheme.labelSmall?.copyWith(color: Colors.white70)),
+        ],
+      ),
     );
   }
 }

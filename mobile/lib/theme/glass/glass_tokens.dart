@@ -18,6 +18,9 @@ class GlassTokens extends ThemeExtension<GlassTokens> {
     required this.blobC,
   });
 
+  /// Dark glass tint for controls floating over photos, in light and dark mode alike.
+  static const Color overPhoto = Color(0xFF0B0C12);
+
   final Brightness brightness;
 
   /// Translucent body colour of the glass.

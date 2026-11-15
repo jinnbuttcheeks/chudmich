@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:immich_mobile/presentation/widgets/common/press_scale.dart';
 import 'package:immich_mobile/theme/glass/glass_math.dart';
 import 'package:immich_mobile/theme/glass/glass_surface.dart';
@@ -15,6 +16,7 @@ class GlassIconButton extends StatelessWidget {
     this.size = 44,
     this.iconSize = 22,
     this.color,
+    this.tint,
     this.blur = true,
   });
 
@@ -24,6 +26,9 @@ class GlassIconButton extends StatelessWidget {
   final double size;
   final double iconSize;
   final Color? color;
+
+  /// Overrides the glass tint, for example dark glass over photos.
+  final Color? tint;
   final bool blur;
 
   @override
@@ -39,6 +44,7 @@ class GlassIconButton extends StatelessWidget {
           radius: size / 2,
           blur: blur,
           shadow: blur,
+          tint: tint,
           child: SizedBox.square(
             dimension: size,
             child: Icon(
@@ -297,6 +303,81 @@ class GlassGroupTile extends StatelessWidget {
               Icon(Icons.chevron_right_rounded, color: tokens.inkSecondary),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Springs [child] in and out: it fades and slides by [offset] while [visible]
+/// flips. Interruptible (the spring restarts from the current value and keeps
+/// its velocity) and instant when the user disabled animations.
+class GlassReveal extends StatefulWidget {
+  const GlassReveal({
+    super.key,
+    required this.visible,
+    required this.child,
+    this.offset = const Offset(0, 24),
+    this.opacity = 1,
+  });
+
+  final bool visible;
+  final Widget child;
+
+  /// Where the child rests while hidden, relative to its place when shown.
+  final Offset offset;
+
+  /// Extra opacity factor, for example while dragging a viewer away.
+  final double opacity;
+
+  @override
+  State<GlassReveal> createState() => _GlassRevealState();
+}
+
+class _GlassRevealState extends State<GlassReveal> with SingleTickerProviderStateMixin {
+  static final _spring = SpringDescription.withDampingRatio(mass: 1, stiffness: 420, ratio: 0.86);
+
+  late final AnimationController _controller = AnimationController.unbounded(
+    vsync: this,
+    value: widget.visible ? 1 : 0,
+  );
+
+  @override
+  void didUpdateWidget(GlassReveal oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.visible == widget.visible) {
+      return;
+    }
+    final target = widget.visible ? 1.0 : 0.0;
+    if (PremiumMotion.reduced(context)) {
+      _controller.value = target;
+    } else {
+      _controller.animateWith(SpringSimulation(_spring, _controller.value, target, _controller.velocity));
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      ignoring: !widget.visible,
+      child: AnimatedBuilder(
+        animation: _controller,
+        child: widget.child,
+        builder: (context, child) {
+          final t = _controller.value;
+          if (t <= 0.001 && !widget.visible) {
+            return const SizedBox.shrink();
+          }
+          return Opacity(
+            opacity: (t * widget.opacity).clamp(0.0, 1.0),
+            child: Transform.translate(offset: widget.offset * (1 - t), child: child),
+          );
+        },
       ),
     );
   }
