@@ -38,11 +38,14 @@ android {
 
   defaultConfig {
     applicationId "app.alextran.immich"
+    // Installs alongside the official Immich app.
+    applicationIdSuffix ".jinn"
     minSdk = 26
     targetSdk = flutter.targetSdkVersion
-    versionCode flutter.versionCode
-    versionName flutter.versionName
-    resValue "string", "app_name", "Immich"
+    // The semantic version (3.4.1) must stay intact: the app compares it with the server version.
+    versionCode flutter.versionCode + 1
+    versionName "${flutter.versionName}-premium.1"
+    resValue "string", "app_name", "Immich Premium"
     buildConfigField "boolean", "PASSKEYS", "true"
   }
 
