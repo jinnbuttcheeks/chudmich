@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:immich_mobile/constants/locales.dart';
 import 'package:immich_mobile/extensions/theme_extensions.dart';
+import 'package:immich_mobile/theme/premium_tokens.dart';
 
 class ImmichTheme {
   final ColorScheme light;
@@ -15,6 +16,7 @@ ThemeData getThemeData({required ColorScheme colorScheme, required Locale locale
 
   return ThemeData(
     useMaterial3: true,
+    extensions: [PremiumTokens.fromScheme(colorScheme)],
     brightness: colorScheme.brightness,
     colorScheme: colorScheme,
     primaryColor: colorScheme.primary,
@@ -23,7 +25,13 @@ ThemeData getThemeData({required ColorScheme colorScheme, required Locale locale
     scaffoldBackgroundColor: colorScheme.surface,
     splashColor: colorScheme.primary.withValues(alpha: 0.1),
     highlightColor: colorScheme.primary.withValues(alpha: 0.1),
-    bottomSheetTheme: BottomSheetThemeData(backgroundColor: colorScheme.surfaceContainer),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: colorScheme.surfaceContainer,
+      showDragHandle: false,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(PremiumTokens.radiusSheet)),
+      ),
+    ),
     fontFamily: _getFontFamilyFromLocale(locale),
     snackBarTheme: SnackBarThemeData(
       contentTextStyle: TextStyle(
@@ -46,13 +54,14 @@ ThemeData getThemeData({required ColorScheme colorScheme, required Locale locale
       scrolledUnderElevation: 0,
       centerTitle: true,
     ),
+    // Slightly tightened tracking on larger sizes keeps headings crisp.
     textTheme: const TextTheme(
-      displayLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+      displayLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
       displayMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
       displaySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
       titleSmall: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600),
-      titleMedium: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600),
-      titleLarge: TextStyle(fontSize: 26.0, fontWeight: FontWeight.w600),
+      titleMedium: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+      titleLarge: TextStyle(fontSize: 26.0, fontWeight: FontWeight.w600, letterSpacing: -0.5),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -105,7 +114,15 @@ ThemeData getThemeData({required ColorScheme colorScheme, required Locale locale
         hintStyle: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.normal),
       ),
     ),
-    dialogTheme: DialogThemeData(backgroundColor: colorScheme.surfaceContainer),
+    dialogTheme: DialogThemeData(
+      backgroundColor: colorScheme.surfaceContainer,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(PremiumTokens.radiusLg))),
+    ),
+    navigationRailTheme: NavigationRailThemeData(
+      backgroundColor: Colors.transparent,
+      indicatorColor: colorScheme.primary.withValues(alpha: isDark ? 0.28 : 0.16),
+      indicatorShape: const StadiumBorder(),
+    ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       // ignore: deprecated_member_use
       year2023: false,
