@@ -9,6 +9,7 @@ import 'package:immich_mobile/domain/models/asset/base_asset.model.dart';
 import 'package:immich_mobile/domain/services/timeline.service.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/presentation/widgets/asset_viewer/asset_viewer.page.dart';
+import 'package:immich_mobile/presentation/widgets/common/press_scale.dart';
 import 'package:immich_mobile/presentation/widgets/images/thumbnail_tile.widget.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/fixed/row.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/header.widget.dart';
@@ -305,13 +306,16 @@ class _AssetTileWidget extends ConsumerWidget {
       child: GestureDetector(
         onTap: () => lockSelection ? null : _handleOnTap(context, ref, assetIndex, asset, heroOffset, remoteSize),
         onLongPress: () => lockSelection || isReadonlyModeEnabled ? null : _handleOnLongPress(ref, asset),
-        child: ThumbnailTile(
-          asset,
-          remoteSize: remoteSize,
-          lockSelection: lockSelection,
-          showStorageIndicator: showStorageIndicator,
-          showStackIndicator: showStackIndicator,
-          heroOffset: heroOffset,
+        child: PressScale(
+          enabled: !lockSelection,
+          child: ThumbnailTile(
+            asset,
+            remoteSize: remoteSize,
+            lockSelection: lockSelection,
+            showStorageIndicator: showStorageIndicator,
+            showStackIndicator: showStackIndicator,
+            heroOffset: heroOffset,
+          ),
         ),
       ),
     );

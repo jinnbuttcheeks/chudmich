@@ -11,6 +11,7 @@ import 'package:immich_mobile/providers/asset_viewer/asset_viewer.provider.dart'
 import 'package:immich_mobile/providers/backup/asset_upload_progress.provider.dart';
 import 'package:immich_mobile/providers/infrastructure/settings.provider.dart';
 import 'package:immich_mobile/providers/timeline/multiselect.provider.dart';
+import 'package:immich_mobile/theme/premium_tokens.dart';
 
 class ThumbnailTile extends ConsumerStatefulWidget {
   const ThumbnailTile(
@@ -110,6 +111,7 @@ class _ThumbnailTileState extends ConsumerState<ThumbnailTile> {
                     // but other solutions have failed thus far.
                     key: ValueKey(isCurrentAsset),
                     tag: '${asset?.heroTag}_$heroIndex',
+                    createRectTween: (begin, end) => SpringRectTween(begin: begin, end: end),
                     child: Thumbnail.fromAsset(asset: asset, size: widget.size, remoteSize: widget.remoteSize),
                     // Placeholderbuilder used to hide indicators on first hero animation, since flightShuttleBuilder isn't called until both source and destination hero exist in widget tree.
                     placeholderBuilder: (context, heroSize, child) {
@@ -203,7 +205,7 @@ class _ThumbnailTileState extends ConsumerState<ThumbnailTile> {
         ),
         TweenAnimationBuilder<double>(
           tween: Tween<double>(begin: 0.0, end: (isSelected || widget.lockSelection) ? 1.0 : 0.0),
-          duration: Durations.short4,
+          duration: Durations.medium1,
           curve: Curves.decelerate,
           builder: (context, value, child) {
             return Padding(
@@ -212,9 +214,12 @@ class _ThumbnailTileState extends ConsumerState<ThumbnailTile> {
                 alignment: Alignment.topLeft,
                 child: Opacity(
                   opacity: (isSelected || widget.lockSelection) ? 1 : value,
-                  child: _SelectionIndicator(
-                    isLocked: widget.lockSelection,
-                    color: widget.lockSelection ? context.colorScheme.surfaceContainerHighest : assetContainerColor,
+                  child: Transform.scale(
+                    scale: PremiumMotion.reduced(context) ? 1.0 : 0.5 + 0.5 * PremiumMotion.snappy.transform(value),
+                    child: _SelectionIndicator(
+                      isLocked: widget.lockSelection,
+                      color: widget.lockSelection ? context.colorScheme.surfaceContainerHighest : assetContainerColor,
+                    ),
                   ),
                 ),
               ),
