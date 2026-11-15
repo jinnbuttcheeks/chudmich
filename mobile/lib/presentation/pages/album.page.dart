@@ -7,6 +7,7 @@ import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/presentation/widgets/album/album_selector.widget.dart';
 import 'package:immich_mobile/providers/infrastructure/album.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
+import 'package:immich_mobile/theme/premium_tokens.dart';
 import 'package:immich_mobile/widgets/common/immich_sliver_app_bar.dart';
 
 @RoutePage()
@@ -62,6 +63,9 @@ class _AlbumsPageState extends ConsumerState<AlbumsPage> {
     return RefreshIndicator(
       onRefresh: onRefresh,
       edgeOffset: 100,
+      color: context.colorScheme.primary,
+      backgroundColor: context.premium.floatingSurface.withValues(alpha: 1),
+      elevation: 4,
       child: showScrollbar
           ? RawScrollbar(
               controller: _scrollController,
