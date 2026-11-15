@@ -16,6 +16,7 @@ import 'package:immich_mobile/generated/translations.g.dart';
 import 'package:immich_mobile/models/search/search_filter.model.dart';
 import 'package:immich_mobile/presentation/pages/search/paginated_search.provider.dart';
 import 'package:immich_mobile/presentation/widgets/bottom_sheet/general_bottom_sheet.widget.dart';
+import 'package:immich_mobile/presentation/widgets/common/bottom_inset_sliver.dart';
 import 'package:immich_mobile/presentation/widgets/search/quick_date_picker.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/timeline.widget.dart';
 import 'package:immich_mobile/providers/infrastructure/timeline.provider.dart';
@@ -716,6 +717,7 @@ class SearchPage extends HookConsumerWidget {
             const _SearchSuggestions()
           else
             _SearchResultGrid(onScrollEnd: () => loadMoreSearchResults()),
+          const BottomInsetSliver(extra: 16),
         ],
       ),
     );
