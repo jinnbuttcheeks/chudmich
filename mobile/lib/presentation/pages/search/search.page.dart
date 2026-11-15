@@ -17,12 +17,16 @@ import 'package:immich_mobile/models/search/search_filter.model.dart';
 import 'package:immich_mobile/presentation/pages/search/paginated_search.provider.dart';
 import 'package:immich_mobile/presentation/widgets/bottom_sheet/general_bottom_sheet.widget.dart';
 import 'package:immich_mobile/presentation/widgets/common/bottom_inset_sliver.dart';
+import 'package:immich_mobile/presentation/widgets/common/press_scale.dart';
+import 'package:immich_mobile/presentation/widgets/images/remote_image_provider.dart';
 import 'package:immich_mobile/presentation/widgets/search/quick_date_picker.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/timeline.widget.dart';
 import 'package:immich_mobile/providers/infrastructure/timeline.provider.dart';
 import 'package:immich_mobile/providers/search/search_input_focus.provider.dart';
 import 'package:immich_mobile/providers/server_info.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
+import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/utils/image_url_builder.dart';
 import 'package:immich_mobile/widgets/common/feature_check.dart';
 import 'package:immich_mobile/widgets/common/search_field.dart';
 import 'package:immich_mobile/widgets/common/tag_picker.dart';
@@ -510,128 +514,123 @@ class SearchPage extends HookConsumerWidget {
       TextSearchType.ocr => Icons.document_scanner_outlined,
     };
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: MenuAnchor(
-              style: MenuStyle(
-                elevation: const WidgetStatePropertyAll(1),
-                shape: WidgetStateProperty.all(
-                  const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(24))),
+    return AmbientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          automaticallyImplyLeading: true,
+          toolbarHeight: 72,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: MenuAnchor(
+                style: MenuStyle(
+                  elevation: const WidgetStatePropertyAll(0),
+                  backgroundColor: WidgetStatePropertyAll(context.glass.tint.withValues(alpha: 0.94)),
+                  surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+                  shape: WidgetStateProperty.all(
+                    RoundedSuperellipseBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      side: BorderSide(color: context.glass.highlight.withValues(alpha: 0.2), width: 0.8),
+                    ),
+                  ),
+                  padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
                 ),
-                padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
+                builder: (BuildContext context, MenuController controller, Widget? child) {
+                  return GlassIconButton(
+                    onPressed: () {
+                      if (controller.isOpen) {
+                        controller.close();
+                      } else {
+                        controller.open();
+                      }
+                    },
+                    icon: Icons.more_vert_rounded,
+                    size: 46,
+                    tooltip: context.t.show_text_search_menu,
+                  );
+                },
+                menuChildren: [
+                  FeatureCheck(
+                    feature: (features) => features.smartSearch,
+                    child: MenuItemButton(
+                      child: ListTile(
+                        leading: const Icon(Icons.image_search_rounded),
+                        title: Text(
+                          context.t.search_by_context,
+                          style: context.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: textSearchType == TextSearchType.context ? context.colorScheme.primary : null,
+                          ),
+                        ),
+                        selectedColor: context.colorScheme.primary,
+                        selected: textSearchType == TextSearchType.context,
+                      ),
+                      onPressed: () {
+                        selectedTextSearchType.value = TextSearchType.context;
+                      },
+                    ),
+                  ),
+                  MenuItemButton(
+                    child: ListTile(
+                      leading: const Icon(Icons.abc_rounded),
+                      title: Text(
+                        context.t.search_filter_filename,
+                        style: context.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: textSearchType == TextSearchType.filename ? context.colorScheme.primary : null,
+                        ),
+                      ),
+                      selectedColor: context.colorScheme.primary,
+                      selected: textSearchType == TextSearchType.filename,
+                    ),
+                    onPressed: () {
+                      selectedTextSearchType.value = TextSearchType.filename;
+                    },
+                  ),
+                  MenuItemButton(
+                    child: ListTile(
+                      leading: const Icon(Icons.text_snippet_outlined),
+                      title: Text(
+                        context.t.search_by_description,
+                        style: context.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: textSearchType == TextSearchType.description ? context.colorScheme.primary : null,
+                        ),
+                      ),
+                      selectedColor: context.colorScheme.primary,
+                      selected: textSearchType == TextSearchType.description,
+                    ),
+                    onPressed: () {
+                      selectedTextSearchType.value = TextSearchType.description;
+                    },
+                  ),
+                  FeatureCheck(
+                    feature: (features) => features.ocr,
+                    child: MenuItemButton(
+                      child: ListTile(
+                        leading: const Icon(Icons.document_scanner_outlined),
+                        title: Text(
+                          context.t.search_by_ocr,
+                          style: context.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: textSearchType == TextSearchType.ocr ? context.colorScheme.primary : null,
+                          ),
+                        ),
+                        selectedColor: context.colorScheme.primary,
+                        selected: textSearchType == TextSearchType.ocr,
+                      ),
+                      onPressed: () {
+                        selectedTextSearchType.value = TextSearchType.ocr;
+                      },
+                    ),
+                  ),
+                ],
               ),
-              builder: (BuildContext context, MenuController controller, Widget? child) {
-                return IconButton(
-                  onPressed: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                  icon: const Icon(Icons.more_vert_rounded),
-                  tooltip: context.t.show_text_search_menu,
-                );
-              },
-              menuChildren: [
-                FeatureCheck(
-                  feature: (features) => features.smartSearch,
-                  child: MenuItemButton(
-                    child: ListTile(
-                      leading: const Icon(Icons.image_search_rounded),
-                      title: Text(
-                        context.t.search_by_context,
-                        style: context.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: textSearchType == TextSearchType.context ? context.colorScheme.primary : null,
-                        ),
-                      ),
-                      selectedColor: context.colorScheme.primary,
-                      selected: textSearchType == TextSearchType.context,
-                    ),
-                    onPressed: () {
-                      selectedTextSearchType.value = TextSearchType.context;
-                    },
-                  ),
-                ),
-                MenuItemButton(
-                  child: ListTile(
-                    leading: const Icon(Icons.abc_rounded),
-                    title: Text(
-                      context.t.search_filter_filename,
-                      style: context.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: textSearchType == TextSearchType.filename ? context.colorScheme.primary : null,
-                      ),
-                    ),
-                    selectedColor: context.colorScheme.primary,
-                    selected: textSearchType == TextSearchType.filename,
-                  ),
-                  onPressed: () {
-                    selectedTextSearchType.value = TextSearchType.filename;
-                  },
-                ),
-                MenuItemButton(
-                  child: ListTile(
-                    leading: const Icon(Icons.text_snippet_outlined),
-                    title: Text(
-                      context.t.search_by_description,
-                      style: context.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: textSearchType == TextSearchType.description ? context.colorScheme.primary : null,
-                      ),
-                    ),
-                    selectedColor: context.colorScheme.primary,
-                    selected: textSearchType == TextSearchType.description,
-                  ),
-                  onPressed: () {
-                    selectedTextSearchType.value = TextSearchType.description;
-                  },
-                ),
-                FeatureCheck(
-                  feature: (features) => features.ocr,
-                  child: MenuItemButton(
-                    child: ListTile(
-                      leading: const Icon(Icons.document_scanner_outlined),
-                      title: Text(
-                        context.t.search_by_ocr,
-                        style: context.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: textSearchType == TextSearchType.ocr ? context.colorScheme.primary : null,
-                        ),
-                      ),
-                      selectedColor: context.colorScheme.primary,
-                      selected: textSearchType == TextSearchType.ocr,
-                    ),
-                    onPressed: () {
-                      selectedTextSearchType.value = TextSearchType.ocr;
-                    },
-                  ),
-                ),
-              ],
             ),
-          ),
-        ],
-        title: DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border.all(color: context.colorScheme.onSurface.withAlpha(0), width: 0),
-            borderRadius: const BorderRadius.all(Radius.circular(24)),
-            gradient: LinearGradient(
-              colors: [
-                context.colorScheme.primary.withValues(alpha: 0.075),
-                context.colorScheme.primary.withValues(alpha: 0.09),
-                context.colorScheme.primary.withValues(alpha: 0.075),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: SearchField(
+          ],
+          title: SearchField(
             hintText: searchHintText,
             key: const Key('search_text_field'),
             controller: textSearchController,
@@ -641,84 +640,87 @@ class SearchPage extends HookConsumerWidget {
                 : Icon(getSearchPrefixIcon(), color: context.colorScheme.primary),
             onSubmitted: handleTextSubmitted,
             focusNode: ref.watch(searchInputFocusProvider),
+            blur: true,
           ),
         ),
-      ),
-      body: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.only(top: 12.0, bottom: 4.0),
-            sliver: SliverToBoxAdapter(
-              child: SizedBox(
-                height: 50,
-                child: ListView(
-                  key: const Key('search_filter_chip_list'),
-                  shrinkWrap: true,
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    SearchFilterChip(
-                      icon: Icons.people_alt_outlined,
-                      onTap: showPeoplePicker,
-                      label: context.t.people,
-                      currentFilter: peopleCurrentFilterWidget.value,
+        body: GlassLightScrollDriver(
+          child: CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.only(top: 12.0, bottom: 4.0),
+                sliver: SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 50,
+                    child: ListView(
+                      key: const Key('search_filter_chip_list'),
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      children: [
+                        SearchFilterChip(
+                          icon: Icons.people_alt_outlined,
+                          onTap: showPeoplePicker,
+                          label: context.t.people,
+                          currentFilter: peopleCurrentFilterWidget.value,
+                        ),
+                        SearchFilterChip(
+                          icon: Icons.location_on_outlined,
+                          onTap: showLocationPicker,
+                          label: context.t.search_filter_location,
+                          currentFilter: locationCurrentFilterWidget.value,
+                        ),
+                        if (userPreferences?.tagsEnabled ?? false)
+                          SearchFilterChip(
+                            icon: Icons.sell_outlined,
+                            onTap: showTagPicker,
+                            label: context.t.tags,
+                            currentFilter: tagCurrentFilterWidget.value,
+                          ),
+                        SearchFilterChip(
+                          icon: Icons.camera_alt_outlined,
+                          onTap: showCameraPicker,
+                          label: context.t.camera,
+                          currentFilter: cameraCurrentFilterWidget.value,
+                        ),
+                        SearchFilterChip(
+                          icon: Icons.date_range_outlined,
+                          onTap: showQuickDatePicker,
+                          label: context.t.search_filter_date,
+                          currentFilter: dateRangeCurrentFilterWidget.value,
+                        ),
+                        SearchFilterChip(
+                          key: const Key('media_type_chip'),
+                          icon: Icons.video_collection_outlined,
+                          onTap: showMediaTypePicker,
+                          label: context.t.search_filter_media_type,
+                          currentFilter: mediaTypeCurrentFilterWidget.value,
+                        ),
+                        if (userPreferences?.ratingsEnabled ?? false)
+                          SearchFilterChip(
+                            icon: Icons.star_outline_rounded,
+                            onTap: showStarRatingPicker,
+                            label: context.t.search_filter_star_rating,
+                            currentFilter: ratingCurrentFilterWidget.value,
+                          ),
+                        SearchFilterChip(
+                          icon: Icons.display_settings_outlined,
+                          onTap: showDisplayOptionPicker,
+                          label: context.t.search_filter_display_options,
+                          currentFilter: displayOptionCurrentFilterWidget.value,
+                        ),
+                      ],
                     ),
-                    SearchFilterChip(
-                      icon: Icons.location_on_outlined,
-                      onTap: showLocationPicker,
-                      label: context.t.search_filter_location,
-                      currentFilter: locationCurrentFilterWidget.value,
-                    ),
-                    if (userPreferences?.tagsEnabled ?? false)
-                      SearchFilterChip(
-                        icon: Icons.sell_outlined,
-                        onTap: showTagPicker,
-                        label: context.t.tags,
-                        currentFilter: tagCurrentFilterWidget.value,
-                      ),
-                    SearchFilterChip(
-                      icon: Icons.camera_alt_outlined,
-                      onTap: showCameraPicker,
-                      label: context.t.camera,
-                      currentFilter: cameraCurrentFilterWidget.value,
-                    ),
-                    SearchFilterChip(
-                      icon: Icons.date_range_outlined,
-                      onTap: showQuickDatePicker,
-                      label: context.t.search_filter_date,
-                      currentFilter: dateRangeCurrentFilterWidget.value,
-                    ),
-                    SearchFilterChip(
-                      key: const Key('media_type_chip'),
-                      icon: Icons.video_collection_outlined,
-                      onTap: showMediaTypePicker,
-                      label: context.t.search_filter_media_type,
-                      currentFilter: mediaTypeCurrentFilterWidget.value,
-                    ),
-                    if (userPreferences?.ratingsEnabled ?? false)
-                      SearchFilterChip(
-                        icon: Icons.star_outline_rounded,
-                        onTap: showStarRatingPicker,
-                        label: context.t.search_filter_star_rating,
-                        currentFilter: ratingCurrentFilterWidget.value,
-                      ),
-                    SearchFilterChip(
-                      icon: Icons.display_settings_outlined,
-                      onTap: showDisplayOptionPicker,
-                      label: context.t.search_filter_display_options,
-                      currentFilter: displayOptionCurrentFilterWidget.value,
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+              if (filter.value.isEmpty)
+                const _SearchSuggestions()
+              else
+                _SearchResultGrid(onScrollEnd: () => loadMoreSearchResults()),
+              const BottomInsetSliver(extra: 16),
+            ],
           ),
-          if (filter.value.isEmpty)
-            const _SearchSuggestions()
-          else
-            _SearchResultGrid(onScrollEnd: () => loadMoreSearchResults()),
-          const BottomInsetSliver(extra: 16),
-        ],
+        ),
       ),
     );
   }
@@ -848,74 +850,126 @@ class _SearchSuggestions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: ListView(
-        shrinkWrap: true,
-        children: [
-          const SizedBox(height: 40),
-          Center(
-            child: Image.asset(
-              context.isDarkTheme ? 'assets/polaroid-dark.png' : 'assets/polaroid-light.png',
-              height: 125,
-            ),
+    final tokens = context.glass;
+    return SliverList.list(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 4),
+          child: Text(
+            context.t.search,
+            style: context.textTheme.headlineLarge?.copyWith(color: tokens.ink, height: 1.05),
           ),
-          const SizedBox(height: 16),
-          Center(child: Text(context.t.search_page_search_photos_videos, style: context.textTheme.labelLarge)),
-          const SizedBox(height: 32),
-          const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: _QuickLinkList()),
-        ],
-      ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+          child: Text(
+            context.t.search_page_search_photos_videos,
+            style: context.textTheme.bodyLarge?.copyWith(color: tokens.inkSecondary),
+          ),
+        ),
+        const _PeopleRail(),
+        const Padding(padding: EdgeInsets.fromLTRB(16, 20, 16, 0), child: _QuickLinkGrid()),
+      ],
     );
   }
 }
 
-class _QuickLinkList extends StatelessWidget {
-  const _QuickLinkList();
+/// Horizontal rail of the people the server recognised, as round portraits.
+class _PeopleRail extends ConsumerWidget {
+  const _PeopleRail();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final people = (ref.watch(Store.people.all()).valueOrNull ?? const <Person>[]).take(12).toList();
+    if (people.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final tokens = context.glass;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 10),
+          child: Text(context.t.people, style: context.textTheme.titleMedium?.copyWith(color: tokens.ink)),
+        ),
+        SizedBox(
+          height: 112,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: people.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final person = people[index];
+              return PressScale(
+                child: GestureDetector(
+                  onTap: () => context.pushRoute(const PeopleCollectionRoute()),
+                  child: SizedBox(
+                    width: 76,
+                    child: Column(
+                      children: [
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: tokens.highlight.withValues(alpha: 0.5), width: 1.5),
+                          ),
+                          child: ClipOval(
+                            child: Image(
+                              width: 72,
+                              height: 72,
+                              fit: BoxFit.cover,
+                              image: RemoteImageProvider(
+                                url: getFaceThumbnailUrl(person.id, updatedAt: person.updatedAt),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          person.name.isEmpty ? context.t.no_name : person.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.textTheme.labelMedium?.copyWith(color: tokens.inkSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickLinkGrid extends StatelessWidget {
+  const _QuickLinkGrid();
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(20)),
-        border: Border.all(color: context.colorScheme.outline.withAlpha(10), width: 1),
-        gradient: LinearGradient(
-          colors: [
-            context.colorScheme.primary.withAlpha(10),
-            context.colorScheme.primary.withAlpha(15),
-            context.colorScheme.primary.withAlpha(20),
+    final links = [
+      (context.t.recently_taken, Icons.schedule_rounded, const Color(0xFF3D8BFF), const RecentlyTakenRoute()),
+      (context.t.recently_added, Icons.upload_rounded, const Color(0xFF34C759), const RecentlyAddedRoute()),
+      (context.t.videos, Icons.play_circle_rounded, const Color(0xFFFF7A59), const VideoRoute()),
+      (context.t.favorites, Icons.favorite_rounded, const Color(0xFFFF4D6D), const FavoriteRoute()),
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = (constraints.maxWidth - 12) / 2;
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            for (final link in links)
+              SizedBox(
+                width: width,
+                child: _QuickLink(title: link.$1, icon: link.$2, hue: link.$3, onTap: () => context.pushRoute(link.$4)),
+              ),
           ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: ListView(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        children: [
-          _QuickLink(
-            title: context.t.recently_taken,
-            icon: Icons.schedule_outlined,
-            isTop: true,
-            onTap: () => context.pushRoute(const RecentlyTakenRoute()),
-          ),
-          _QuickLink(
-            title: context.t.recently_added,
-            icon: Icons.upload_outlined,
-            onTap: () => context.pushRoute(const RecentlyAddedRoute()),
-          ),
-          _QuickLink(
-            title: context.t.videos,
-            icon: Icons.play_circle_outline_rounded,
-            onTap: () => context.pushRoute(const VideoRoute()),
-          ),
-          _QuickLink(
-            title: context.t.favorites,
-            icon: Icons.favorite_border_rounded,
-            isBottom: true,
-            onTap: () => context.pushRoute(const FavoriteRoute()),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -923,32 +977,33 @@ class _QuickLinkList extends StatelessWidget {
 class _QuickLink extends StatelessWidget {
   final String title;
   final IconData icon;
+  final Color hue;
   final VoidCallback onTap;
-  final bool isTop;
-  final bool isBottom;
 
-  const _QuickLink({
-    required this.title,
-    required this.icon,
-    required this.onTap,
-    this.isTop = false,
-    this.isBottom = false,
-  });
+  const _QuickLink({required this.title, required this.icon, required this.hue, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final borderRadius = BorderRadius.only(
-      topLeft: Radius.circular(isTop ? 20 : 0),
-      topRight: Radius.circular(isTop ? 20 : 0),
-      bottomLeft: Radius.circular(isBottom ? 20 : 0),
-      bottomRight: Radius.circular(isBottom ? 20 : 0),
-    );
-
-    return ListTile(
-      shape: RoundedRectangleBorder(borderRadius: borderRadius),
-      leading: Icon(icon, size: 26),
-      title: Text(title, style: context.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500)),
-      onTap: onTap,
+    final tokens = context.glass;
+    return PressScale(
+      child: GestureDetector(
+        onTap: onTap,
+        child: GlassSurface(
+          blur: false,
+          shadow: false,
+          radius: 24,
+          tint: Color.alphaBlend(hue.withValues(alpha: tokens.isDark ? 0.18 : 0.14), tokens.tint),
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GlassIconBadge(icon: icon, color: hue, size: 36),
+              const SizedBox(height: 22),
+              Text(title, style: context.textTheme.titleSmall?.copyWith(color: tokens.ink)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

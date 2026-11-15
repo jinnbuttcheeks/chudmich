@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
+import 'package:immich_mobile/presentation/widgets/common/press_scale.dart';
+import 'package:immich_mobile/theme/glass/glass.dart';
 
 class SearchFilterChip extends StatelessWidget {
   final String label;
@@ -11,33 +13,37 @@ class SearchFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (currentFilter != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: Card(
-          elevation: 0,
-          color: context.colorScheme.secondaryContainer,
-          shape: StadiumBorder(side: BorderSide(color: context.colorScheme.secondaryContainer)),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 14.0),
-            child: Row(children: [Icon(icon, size: 18), const SizedBox(width: 4.0), currentFilter!]),
-          ),
-        ),
-      );
-    }
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        elevation: 0,
-        shape: StadiumBorder(side: BorderSide(color: context.colorScheme.outline.withAlpha(15))),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 14.0),
-          child: Row(
-            children: [
-              Icon(icon, size: 18),
-              const SizedBox(width: 4.0),
-              Text(label, style: TextStyle(color: context.colorScheme.onSecondaryContainer)),
-            ],
+    final tokens = context.glass;
+    final active = currentFilter != null;
+    final fg = active ? (tokens.isDark ? Colors.black : Colors.white) : tokens.ink;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8, top: 4, bottom: 4),
+      child: PressScale(
+        child: GestureDetector(
+          onTap: onTap,
+          child: GlassSurface(
+            variant: GlassVariant.thin,
+            blur: false,
+            shadow: false,
+            radius: 999,
+            tint: active ? tokens.accent : null,
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: fg),
+                const SizedBox(width: 6.0),
+                if (active)
+                  DefaultTextStyle.merge(
+                    style: TextStyle(color: fg, fontWeight: FontWeight.w600),
+                    child: currentFilter!,
+                  )
+                else
+                  Text(
+                    label,
+                    style: context.textTheme.labelLarge?.copyWith(color: fg, fontWeight: FontWeight.w500),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

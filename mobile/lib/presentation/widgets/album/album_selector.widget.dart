@@ -395,33 +395,18 @@ class _SearchBar extends StatelessWidget {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       sliver: SliverToBoxAdapter(
-        child: GlassSurface(
-          blur: false,
-          shadow: false,
-          radius: 24,
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              inputDecorationTheme: const InputDecorationTheme(
-                filled: false,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-              ),
-            ),
-            child: SearchField(
-              autofocus: false,
-              contentPadding: const EdgeInsets.all(16),
-              hintText: context.t.search_albums,
-              prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: searchController.text.isNotEmpty
-                  ? IconButton(icon: const Icon(Icons.clear_rounded), onPressed: onClearSearch)
-                  : null,
-              controller: searchController,
-              onChanged: (_) => onSearch(searchController.text, filterMode),
-              focusNode: searchFocusNode,
-              onTapOutside: (_) => searchFocusNode.unfocus(),
-            ),
-          ),
+        child: SearchField(
+          autofocus: false,
+          contentPadding: const EdgeInsets.all(16),
+          hintText: context.t.search_albums,
+          prefixIcon: const Icon(Icons.search_rounded),
+          suffixIcon: searchController.text.isNotEmpty
+              ? IconButton(icon: const Icon(Icons.clear_rounded), onPressed: onClearSearch)
+              : null,
+          controller: searchController,
+          onChanged: (_) => onSearch(searchController.text, filterMode),
+          focusNode: searchFocusNode,
+          onTapOutside: (_) => searchFocusNode.unfocus(),
         ),
       ),
     );

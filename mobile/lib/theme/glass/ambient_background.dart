@@ -17,6 +17,10 @@ class AmbientBackground extends StatefulWidget {
 
   final Widget? child;
 
+  /// Global switch for the drift animation. Tests turn it off so that
+  /// `pumpAndSettle` can settle; the field is then painted once, static.
+  static bool animationsEnabled = true;
+
   /// Scales blob opacity; 0 hides the blobs.
   final double intensity;
 
@@ -53,7 +57,7 @@ class _AmbientBackgroundState extends State<AmbientBackground> with SingleTicker
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _animate = !(MediaQuery.maybeDisableAnimationsOf(context) ?? false);
+    _animate = AmbientBackground.animationsEnabled && !(MediaQuery.maybeDisableAnimationsOf(context) ?? false);
     if (_animate && !_ticker.isActive) {
       _ticker.start();
     } else if (!_animate && _ticker.isActive) {
