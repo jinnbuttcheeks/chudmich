@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -7,11 +6,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/constants/enums.dart';
 import 'package:immich_mobile/domain/models/album/album.model.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
-import 'package:immich_mobile/extensions/theme_extensions.dart';
 import 'package:immich_mobile/generated/translations.g.dart';
 import 'package:immich_mobile/models/albums/album_search.model.dart';
 import 'package:immich_mobile/presentation/widgets/album/album_tile.dart';
 import 'package:immich_mobile/presentation/widgets/album/new_album_name_modal.widget.dart';
+import 'package:immich_mobile/presentation/widgets/common/press_scale.dart';
 import 'package:immich_mobile/presentation/widgets/images/thumbnail.widget.dart';
 import 'package:immich_mobile/providers/album/album_sort_by_options.provider.dart';
 import 'package:immich_mobile/providers/asset_viewer/asset_viewer.provider.dart';
@@ -21,6 +20,7 @@ import 'package:immich_mobile/providers/infrastructure/settings.provider.dart';
 import 'package:immich_mobile/providers/timeline/multiselect.provider.dart';
 import 'package:immich_mobile/providers/user.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
+import 'package:immich_mobile/theme/glass/glass.dart';
 import 'package:immich_mobile/utils/album_filter.utils.dart';
 import 'package:immich_mobile/widgets/common/confirm_dialog.dart';
 import 'package:immich_mobile/widgets/common/immich_toast.dart';
@@ -285,9 +285,14 @@ class _SortButtonState extends ConsumerState<_SortButton> {
     return MenuAnchor(
       controller: widget.controller,
       style: MenuStyle(
-        elevation: const WidgetStatePropertyAll(1),
+        elevation: const WidgetStatePropertyAll(0),
+        backgroundColor: WidgetStatePropertyAll(context.glass.tint.withValues(alpha: 0.94)),
+        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
         shape: WidgetStateProperty.all(
-          const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(24))),
+          RoundedSuperellipseBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: context.glass.highlight.withValues(alpha: 0.2), width: 0.8),
+          ),
         ),
         padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
       ),
@@ -390,33 +395,32 @@ class _SearchBar extends StatelessWidget {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       sliver: SliverToBoxAdapter(
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border.all(color: context.colorScheme.onSurface.withAlpha(0), width: 0),
-            borderRadius: const BorderRadius.all(Radius.circular(24)),
-            gradient: LinearGradient(
-              colors: [
-                context.colorScheme.primary.withValues(alpha: 0.075),
-                context.colorScheme.primary.withValues(alpha: 0.09),
-                context.colorScheme.primary.withValues(alpha: 0.075),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              transform: const GradientRotation(0.5 * pi),
+        child: GlassSurface(
+          blur: false,
+          shadow: false,
+          radius: 24,
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              inputDecorationTheme: const InputDecorationTheme(
+                filled: false,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+              ),
             ),
-          ),
-          child: SearchField(
-            autofocus: false,
-            contentPadding: const EdgeInsets.all(16),
-            hintText: context.t.search_albums,
-            prefixIcon: const Icon(Icons.search_rounded),
-            suffixIcon: searchController.text.isNotEmpty
-                ? IconButton(icon: const Icon(Icons.clear_rounded), onPressed: onClearSearch)
-                : null,
-            controller: searchController,
-            onChanged: (_) => onSearch(searchController.text, filterMode),
-            focusNode: searchFocusNode,
-            onTapOutside: (_) => searchFocusNode.unfocus(),
+            child: SearchField(
+              autofocus: false,
+              contentPadding: const EdgeInsets.all(16),
+              hintText: context.t.search_albums,
+              prefixIcon: const Icon(Icons.search_rounded),
+              suffixIcon: searchController.text.isNotEmpty
+                  ? IconButton(icon: const Icon(Icons.clear_rounded), onPressed: onClearSearch)
+                  : null,
+              controller: searchController,
+              onChanged: (_) => onSearch(searchController.text, filterMode),
+              focusNode: searchFocusNode,
+              onTapOutside: (_) => searchFocusNode.unfocus(),
+            ),
           ),
         ),
       ),
@@ -443,8 +447,8 @@ class _QuickFilterButtonRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverToBoxAdapter(
         child: Wrap(
-          spacing: 4,
-          runSpacing: 4,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             _QuickFilterButton(
               label: context.t.all,
@@ -485,27 +489,7 @@ class _QuickFilterButton extends StatelessWidget {
   final String label;
 
   @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: onTap,
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.all(isSelected ? context.colorScheme.primary : Colors.transparent),
-        shape: WidgetStateProperty.all(
-          RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(20)),
-            side: BorderSide(color: context.colorScheme.onSurface.withAlpha(25), width: 1),
-          ),
-        ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? context.colorScheme.onPrimary : context.colorScheme.onSurface,
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => GlassChip(label: label, selected: isSelected, onTap: onTap);
 }
 
 class _QuickSortAndViewMode extends StatelessWidget {
@@ -539,12 +523,12 @@ class _QuickSortAndViewMode extends StatelessWidget {
               initialSortMode: currentSortMode,
               initialIsReverse: currentIsReverse,
             ),
-            IconButton(
-              icon: Icon(
-                isGrid ? Icons.view_list_outlined : Icons.grid_view_outlined,
-                size: 24,
-                color: context.colorScheme.onSurface,
-              ),
+            GlassIconButton(
+              icon: isGrid ? Icons.view_agenda_rounded : Icons.grid_view_rounded,
+              size: 40,
+              iconSize: 20,
+              blur: false,
+              tooltip: isGrid ? 'List' : 'Grid',
               onPressed: onToggleViewMode,
             ),
           ],
@@ -638,13 +622,13 @@ class _AlbumGrid extends StatelessWidget {
     }
 
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       sliver: SliverGrid(
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 250,
-          mainAxisSpacing: 4,
-          crossAxisSpacing: 4,
-          childAspectRatio: .7,
+          maxCrossAxisExtent: 240,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: .82,
         ),
         delegate: SliverChildBuilderDelegate((context, index) {
           final album = albums[index];
@@ -655,6 +639,8 @@ class _AlbumGrid extends StatelessWidget {
   }
 }
 
+/// Album cover that fills the card, with a frosted caption laid over its lower edge.
+/// Fake glass (no backdrop filter): these cards live in a scrolling grid.
 class _GridAlbumCard extends ConsumerWidget {
   const _GridAlbumCard({required this.album, required this.userId, required this.onAlbumSelected});
 
@@ -664,70 +650,65 @@ class _GridAlbumCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = context.glass;
     final albumThumbnailAsset = ref.watch(assetServiceProvider).getRemoteAsset(album.thumbnailAssetId ?? "");
 
-    return GestureDetector(
-      onTap: () => onAlbumSelected(album),
-      child: Card(
-        elevation: 0,
-        color: context.colorScheme.surfaceBright,
-        shape: RoundedRectangleBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(16)),
-          side: BorderSide(color: context.colorScheme.onSurface.withAlpha(25), width: 1),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 2,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: FutureBuilder(
-                    future: albumThumbnailAsset,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData && snapshot.data != null) {
-                        return Thumbnail.remote(
-                          remoteId: album.thumbnailAssetId!,
-                          thumbhash: snapshot.data!.thumbHash ?? "",
-                        );
-                      }
-
-                      return ColoredBox(
-                        color: context.colorScheme.surfaceContainerHighest,
-                        child: const Icon(Icons.photo_album_rounded, size: 40, color: Colors.grey),
-                      );
-                    },
+    return PressScale(
+      child: GestureDetector(
+        onTap: () => onAlbumSelected(album),
+        child: ClipRSuperellipse(
+          borderRadius: BorderRadius.circular(28),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              FutureBuilder(
+                future: albumThumbnailAsset,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data != null) {
+                    return Thumbnail.remote(
+                      remoteId: album.thumbnailAssetId!,
+                      thumbhash: snapshot.data!.thumbHash ?? "",
+                    );
+                  }
+                  return ColoredBox(
+                    color: context.colorScheme.surfaceContainerHighest,
+                    child: Icon(Icons.photo_album_rounded, size: 44, color: tokens.inkSecondary),
+                  );
+                },
+              ),
+              Positioned(
+                left: 8,
+                right: 8,
+                bottom: 8,
+                child: GlassSurface(
+                  blur: false,
+                  shadow: false,
+                  variant: GlassVariant.thick,
+                  radius: 20,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        album.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.titleSmall?.copyWith(color: tokens.ink),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        '${context.t.items_count(count: album.assetCount)} • ${album.ownerId != userId ? context.t.shared_by_user(user: album.ownerName) : context.t.owned}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.labelMedium?.copyWith(color: tokens.inkSecondary),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(
-                      album.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      '${context.t.items_count(count: album.assetCount)} • ${album.ownerId != userId ? context.t.shared_by_user(user: album.ownerName) : context.t.owned}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.labelMedium?.copyWith(color: context.colorScheme.onSurfaceSecondary),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
