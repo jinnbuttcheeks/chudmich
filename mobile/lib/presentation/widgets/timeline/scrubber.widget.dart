@@ -8,11 +8,11 @@ import 'package:immich_mobile/constants/constants.dart';
 import 'package:immich_mobile/domain/models/timeline.model.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/extensions/datetime_extensions.dart';
-import 'package:immich_mobile/extensions/theme_extensions.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/constants.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/segment.model.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/timeline.state.dart';
 import 'package:immich_mobile/providers/haptic_feedback.provider.dart';
+import 'package:immich_mobile/theme/glass/glass.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 part 'scrubber.widget.freezed.dart';
@@ -340,7 +340,7 @@ class ScrubberState extends ConsumerState<Scrubber> with TickerProviderStateMixi
       label = labelText != null
           ? Text(
               labelText,
-              style: ctx.textTheme.bodyLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+              style: ctx.textTheme.titleMedium?.copyWith(color: ctx.glass.ink, fontWeight: FontWeight.w700),
             )
           : null;
     }
@@ -413,19 +413,22 @@ class _SegmentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.glass;
     return IgnorePointer(
-      child: Container(
-        margin: const EdgeInsets.only(right: 36.0),
-        child: Material(
-          color: context.colorScheme.surface,
-          borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-          child: Container(
-            constraints: const BoxConstraints(maxHeight: 28),
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            alignment: Alignment.center,
-            child: Text(
-              _segment.date.year.toString(),
-              style: context.textTheme.labelMedium?.copyWith(fontFamily: "GoogleSansCode", fontWeight: FontWeight.w600),
+      child: Padding(
+        padding: const EdgeInsets.only(right: 40.0),
+        child: GlassSurface(
+          variant: GlassVariant.thin,
+          blur: false,
+          shadow: false,
+          radius: 14,
+          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4),
+          child: Text(
+            _segment.date.year.toString(),
+            style: context.textTheme.labelMedium?.copyWith(
+              fontFamily: "GoogleSansCode",
+              fontWeight: FontWeight.w600,
+              color: tokens.ink,
             ),
           ),
         ),
@@ -436,26 +439,24 @@ class _SegmentWidget extends StatelessWidget {
 
 class _ScrollLabel extends StatelessWidget {
   final Text label;
-  final Color backgroundColor;
   final Animation<double> animation;
 
-  const _ScrollLabel({required this.label, required this.backgroundColor, required this.animation});
+  const _ScrollLabel({required this.label, required this.animation});
 
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: FadeTransition(
         opacity: animation,
-        child: Container(
-          margin: const EdgeInsets.only(right: 12.0),
-          child: Material(
-            elevation: 4.0,
-            color: backgroundColor,
-            borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-            child: Container(
-              constraints: const BoxConstraints(maxHeight: 28),
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              alignment: Alignment.center,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.92, end: 1).animate(animation),
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: GlassSurface(
+              variant: GlassVariant.thick,
+              radius: 22,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
               child: label,
             ),
           ),
@@ -474,18 +475,14 @@ class _Scrubber extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = context.isDarkTheme
-        ? context.colorScheme.primary.darken(amount: .5)
-        : context.colorScheme.primary;
-
     return _SlideFadeTransition(
       animation: thumbAnimation,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          if (label != null) _ScrollLabel(label: label!, backgroundColor: backgroundColor, animation: labelAnimation),
-          _CircularThumb(backgroundColor),
+          if (label != null) _ScrollLabel(label: label!, animation: labelAnimation),
+          const _CircularThumb(),
         ],
       ),
     );
@@ -493,25 +490,20 @@ class _Scrubber extends StatelessWidget {
 }
 
 class _CircularThumb extends StatelessWidget {
-  final Color backgroundColor;
-
-  const _CircularThumb(this.backgroundColor);
+  const _CircularThumb();
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      foregroundPainter: const _ArrowPainter(Colors.white),
-      child: Material(
-        elevation: 4.0,
-        color: backgroundColor,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(kScrubberThumbHeight),
-          bottomLeft: Radius.circular(kScrubberThumbHeight),
-          topRight: Radius.circular(4.0),
-          bottomRight: Radius.circular(4.0),
-        ),
-        child: Container(
-          constraints: BoxConstraints.tight(const Size(kScrubberThumbHeight * 0.6, kScrubberThumbHeight)),
+    final tokens = context.glass;
+    return Padding(
+      padding: const EdgeInsets.only(right: 4.0),
+      child: CustomPaint(
+        foregroundPainter: _ArrowPainter(tokens.ink),
+        child: const GlassSurface(
+          variant: GlassVariant.regular,
+          blur: false,
+          radius: 16,
+          child: SizedBox(width: 32, height: kScrubberThumbHeight),
         ),
       ),
     );

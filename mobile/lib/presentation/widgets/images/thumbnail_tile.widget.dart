@@ -96,7 +96,7 @@ class _ThumbnailTileState extends ConsumerState<ThumbnailTile> {
           },
           padding: EdgeInsets.all(isSelected || widget.lockSelection ? 6 : 0),
           child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0.0, end: (isSelected || widget.lockSelection) ? 15.0 : 0.0),
+            tween: Tween<double>(begin: 0.0, end: (isSelected || widget.lockSelection) ? 18.0 : 7.0),
             duration: Durations.short4,
             curve: Curves.decelerate,
             builder: (context, value, child) {
