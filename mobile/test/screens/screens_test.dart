@@ -2,7 +2,7 @@
 //
 // Skipped unless SCREENSHOT_DIR is set, so it never writes outside the repo during
 // a normal `flutter test` run:
-//   SCREENSHOT_DIR=/workspace/builds/immich-premium/screens flutter test test/screens
+//   SCREENSHOT_DIR=/workspace/builds/chudmich/screens flutter test test/screens
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -17,6 +17,7 @@ import 'package:immich_mobile/domain/services/timeline.service.dart';
 import 'package:immich_mobile/presentation/pages/library.page.dart';
 import 'package:immich_mobile/presentation/widgets/navigation/floating_nav_bar.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/header.widget.dart';
+import 'package:immich_mobile/presentation/widgets/timeline/scrubber.widget.dart';
 import 'package:immich_mobile/providers/infrastructure/timeline.provider.dart';
 import 'package:immich_mobile/theme/glass/glass.dart';
 import 'package:immich_mobile/theme/theme_data.dart';
@@ -682,6 +683,21 @@ void main() {
               content: 'Are you sure you want to delete the album "Iceland 2026"? This cannot be undone.',
               ok: 'Delete',
             ),
+          ),
+        ],
+      );
+    });
+  }, skip: skip);
+
+  testWidgets('scrubber close-up', (tester) async {
+    await _shoot(tester, context, 'scrubber', (b) {
+      return const Stack(
+        fit: StackFit.expand,
+        children: [
+          _PhotoGrid(),
+          Align(
+            alignment: Alignment(1, -0.2),
+            child: Padding(padding: EdgeInsets.only(right: 4), child: ScrubberHandle()),
           ),
         ],
       );

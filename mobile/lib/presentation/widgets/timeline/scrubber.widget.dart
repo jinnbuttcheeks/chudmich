@@ -455,6 +455,8 @@ class _ScrollLabel extends StatelessWidget {
             padding: const EdgeInsets.only(right: 8.0),
             child: GlassSurface(
               variant: GlassVariant.thick,
+              // Moves with the grid under the finger: dense static glass, never a live blur.
+              blur: false,
               radius: 22,
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
               child: label,
@@ -482,15 +484,17 @@ class _Scrubber extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           if (label != null) _ScrollLabel(label: label!, animation: labelAnimation),
-          const _CircularThumb(),
+          const ScrubberHandle(),
         ],
       ),
     );
   }
 }
 
-class _CircularThumb extends StatelessWidget {
-  const _CircularThumb();
+/// The round glass thumb with its arrows.
+@visibleForTesting
+class ScrubberHandle extends StatelessWidget {
+  const ScrubberHandle({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -498,8 +502,10 @@ class _CircularThumb extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 4.0),
       child: CustomPaint(
-        foregroundPainter: _ArrowPainter(tokens.ink),
+        key: ScrubberArrowPainter.paintKey,
+        foregroundPainter: ScrubberArrowPainter(tokens.ink),
         child: const GlassSurface(
+          key: ScrubberArrowPainter.handleKey,
           variant: GlassVariant.regular,
           blur: false,
           radius: 16,
@@ -510,31 +516,54 @@ class _CircularThumb extends StatelessWidget {
   }
 }
 
-class _ArrowPainter extends CustomPainter {
+/// Draws the up/down arrows of the scrubber handle. Pure geometry in [glyphs]
+/// so the centring can be tested; no text or font is involved, so text scale
+/// cannot move the arrows.
+class ScrubberArrowPainter extends CustomPainter {
   final Color color;
 
-  const _ArrowPainter(this.color);
+  const ScrubberArrowPainter(this.color);
+
+  @visibleForTesting
+  static const paintKey = ValueKey<String>('scrubber_arrows');
+
+  @visibleForTesting
+  static const handleKey = ValueKey<String>('scrubber_handle');
+
+  static const double glyphWidth = 12.0;
+  static const double glyphHeight = 8.0;
+
+  /// Gap between the two triangle bases is twice this value.
+  static const double glyphGap = 2.0;
+
+  /// Outlines of the up and down arrows for a handle of [size].
+  static List<Path> glyphs(Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    return [
+      _trianglePath(Offset(cx, cy - glyphGap), isUp: true),
+      _trianglePath(Offset(cx, cy + glyphGap), isUp: false),
+    ];
+  }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant ScrubberArrowPainter oldDelegate) => oldDelegate.color != color;
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = color;
-    const width = 12.0;
-    const height = 8.0;
-    final baseX = size.width / 2;
-    final baseY = size.height / 2;
-
-    canvas.drawPath(_trianglePath(Offset(baseX, baseY - 2.0), width, height, true), paint);
-    canvas.drawPath(_trianglePath(Offset(baseX, baseY + 2.0), width, height, false), paint);
+    for (final glyph in glyphs(size)) {
+      canvas.drawPath(glyph, paint);
+    }
   }
 
-  static Path _trianglePath(Offset o, double width, double height, bool isUp) {
+  /// Triangle with its base centred on [baseCentre], pointing up or down.
+  static Path _trianglePath(Offset baseCentre, {required bool isUp}) {
+    final left = baseCentre.dx - glyphWidth / 2;
     return Path()
-      ..moveTo(o.dx, o.dy)
-      ..lineTo(o.dx + width, o.dy)
-      ..lineTo(o.dx + (width / 2), isUp ? o.dy - height : o.dy + height)
+      ..moveTo(left, baseCentre.dy)
+      ..lineTo(left + glyphWidth, baseCentre.dy)
+      ..lineTo(baseCentre.dx, isUp ? baseCentre.dy - glyphHeight : baseCentre.dy + glyphHeight)
       ..close();
   }
 }
