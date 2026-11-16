@@ -260,8 +260,14 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
         onNativePlaybackEnded();
     }
 
-    if (state.status != newStatus) {
-      state = state.copyWith(status: newStatus);
+    // The throttled position feed can stop up to 100 ms short of the end; completion publishes the exact value.
+    // Only completion does this: a pause or a seek in flight can still report the pre-seek position.
+    final seeking = _seekTimer?.isActive ?? false;
+    final position = newStatus == VideoPlaybackStatus.completed && !seeking
+        ? Duration(milliseconds: playbackInfo.position)
+        : state.position;
+    if (state.status != newStatus || state.position != position) {
+      state = state.copyWith(status: newStatus, position: position);
     }
   }
 

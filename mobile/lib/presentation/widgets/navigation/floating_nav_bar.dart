@@ -175,6 +175,7 @@ class _NavTab extends StatelessWidget {
                     Text(
                       item.label,
                       style: label?.copyWith(color: animated),
+                      textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.15),
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.ellipsis,
