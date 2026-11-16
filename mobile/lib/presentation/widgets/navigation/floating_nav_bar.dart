@@ -153,6 +153,7 @@ class _FloatingNavBarState extends State<FloatingNavBar> with TickerProviderStat
           child: GlassLightScope(
             light: _light,
             child: GlassSurface(
+              scrollAware: true,
               radius: PremiumTokens.radiusPill,
               padding: const EdgeInsets.all(PremiumTokens.space1 + 2),
               child: LayoutBuilder(

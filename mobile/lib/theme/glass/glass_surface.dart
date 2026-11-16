@@ -1,7 +1,10 @@
+import 'dart:ui' show lerpDouble;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:immich_mobile/theme/glass/glass_light.dart';
 import 'package:immich_mobile/theme/glass/glass_math.dart';
+import 'package:immich_mobile/theme/glass/glass_scroll_activity.dart';
 import 'package:immich_mobile/theme/glass/glass_tokens.dart';
 
 /// Liquid glass material.
@@ -27,6 +30,8 @@ class GlassSurface extends StatefulWidget {
     this.shadow = true,
     this.tint,
     this.budget,
+    this.scrollAware = false,
+    this.activity,
   });
 
   final Widget child;
@@ -47,6 +52,13 @@ class GlassSurface extends StatefulWidget {
 
   /// Test hook; defaults to [GlassLayerBudget.shared].
   final GlassLayerBudget? budget;
+
+  /// Swaps the live blur for fake glass while a vertical scrollable moves
+  /// ([GlassScrollActivity]). Use for surfaces that float over a scrolling grid.
+  final bool scrollAware;
+
+  /// Test hook for the scroll signal; defaults to [GlassScrollActivity.scrolling].
+  final ValueListenable<bool>? activity;
 
   @override
   State<GlassSurface> createState() => _GlassSurfaceState();
@@ -90,6 +102,14 @@ class _GlassSurfaceState extends State<GlassSurface> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.scrollAware) {
+      return GlassScrollGate(activity: widget.activity, builder: (context, fake) => _buildGlass(context, fake));
+    }
+    return _buildGlass(context, 0);
+  }
+
+  /// [fake] 0 is the live material, 1 is fake glass (no backdrop filter).
+  Widget _buildGlass(BuildContext context, double fake) {
     final tokens = context.glass;
     final spec = GlassSpec.of(widget.variant, tokens.brightness);
     final light = GlassLightScope.of(context);
@@ -100,6 +120,7 @@ class _GlassSurfaceState extends State<GlassSurface> {
       radius: widget.radius,
       light: light,
       blurring: _blurring,
+      fake: fake,
       tint: widget.tint,
     );
 
@@ -111,7 +132,7 @@ class _GlassSurfaceState extends State<GlassSurface> {
 
     body = ClipRSuperellipse(
       borderRadius: radius,
-      child: BackdropFilter(enabled: _blurring, filter: GlassMath.backdropFilter(spec), child: body),
+      child: BackdropFilter(enabled: _blurring && fake < 1, filter: GlassMath.backdropFilter(spec), child: body),
     );
 
     return RepaintBoundary(
@@ -161,6 +182,7 @@ class _GlassPainter extends CustomPainter {
     required this.light,
     required this.blurring,
     required this.tint,
+    this.fake = 0,
   }) : super(repaint: light);
 
   final GlassTokens tokens;
@@ -168,6 +190,7 @@ class _GlassPainter extends CustomPainter {
   final double radius;
   final ValueListenable<Offset> light;
   final bool blurring;
+  final double fake;
   final Color? tint;
 
   @override
@@ -175,7 +198,7 @@ class _GlassPainter extends CustomPainter {
     final rect = Offset.zero & size;
     final path = _shapePath(rect, radius);
     final base = tint ?? tokens.tint;
-    final alpha = blurring ? spec.tintAlpha : spec.fallbackTintAlpha;
+    final alpha = blurring ? lerpDouble(spec.tintAlpha, spec.fallbackTintAlpha, fake)! : spec.fallbackTintAlpha;
     canvas.drawPath(path, Paint()..color = base.withValues(alpha: alpha));
 
     // Vertical sheen: the upper half is slightly brighter, like curved glass.
@@ -212,7 +235,12 @@ class _GlassPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GlassPainter old) =>
-      old.tokens != tokens || old.spec != spec || old.radius != radius || old.blurring != blurring || old.tint != tint;
+      old.tokens != tokens ||
+      old.spec != spec ||
+      old.radius != radius ||
+      old.blurring != blurring ||
+      old.fake != fake ||
+      old.tint != tint;
 }
 
 class _RimPainter extends CustomPainter {
@@ -263,6 +291,7 @@ class GlassBar extends StatefulWidget {
     this.edge = Alignment.bottomCenter,
     this.variant = GlassVariant.regular,
     this.budget,
+    this.activity,
     this.child,
   });
 
@@ -272,6 +301,9 @@ class GlassBar extends StatefulWidget {
   final Alignment edge;
   final GlassVariant variant;
   final GlassLayerBudget? budget;
+
+  /// Test hook for the scroll signal; defaults to [GlassScrollActivity.scrolling].
+  final ValueListenable<bool>? activity;
   final Widget? child;
 
   @override
@@ -311,14 +343,19 @@ class _GlassBarState extends State<GlassBar> {
 
   @override
   Widget build(BuildContext context) {
+    // Bars float over the scrolling content: they are static glass while it moves.
+    return GlassScrollGate(activity: widget.activity, builder: _buildBar);
+  }
+
+  Widget _buildBar(BuildContext context, double fake) {
     final tokens = context.glass;
     final spec = GlassSpec.of(widget.variant, tokens.brightness);
     final t = widget.condense.clamp(0.0, 1.0);
-    final alpha = (_slot ? spec.tintAlpha : spec.fallbackTintAlpha) * t;
+    final alpha = (_slot ? lerpDouble(spec.tintAlpha, spec.fallbackTintAlpha, fake)! : spec.fallbackTintAlpha) * t;
     return RepaintBoundary(
       child: ClipRect(
         child: BackdropFilter(
-          enabled: _slot,
+          enabled: _slot && fake < 1,
           filter: GlassMath.backdropFilter(spec),
           child: DecoratedBox(
             decoration: BoxDecoration(

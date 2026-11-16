@@ -38,8 +38,9 @@ class _GlassLightScrollDriverState extends State<GlassLightScrollDriver> {
       return false;
     }
     final target = GlassMath.lightFromScroll(notification.metrics.pixels);
-    // Ignore sub-pixel changes: nothing visible would move.
-    if ((target - _light.value).distance > 0.004) {
+    // Every glass surface repaints its glow and rim when the light moves, so
+    // only publish changes large enough to see (about 10 px of scrolling).
+    if ((target - _light.value).distance > GlassMath.lightStep) {
       _light.value = target;
     }
     return false;

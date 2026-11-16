@@ -132,13 +132,29 @@ abstract final class GlassMath {
     ];
   }
 
+  static final Map<(double, double, double), ui.ImageFilter> _filters = <(double, double, double), ui.ImageFilter>{};
+
   /// Backdrop filter: blur followed by the saturation boost, as one layer.
+  ///
+  /// Filters are immutable, so one instance per recipe is shared by every
+  /// surface: no native filter objects are allocated per build and the engine
+  /// sees an identical filter between frames.
   static ui.ImageFilter backdropFilter(GlassSpec spec) {
-    return ui.ImageFilter.compose(
-      outer: ui.ColorFilter.matrix(saturationMatrix(spec.saturation, brightness: spec.brightness)),
-      inner: ui.ImageFilter.blur(sigmaX: spec.sigma, sigmaY: spec.sigma, tileMode: TileMode.mirror),
+    return _filters.putIfAbsent(
+      (spec.sigma, spec.saturation, spec.brightness),
+      () => ui.ImageFilter.compose(
+        outer: ui.ColorFilter.matrix(saturationMatrix(spec.saturation, brightness: spec.brightness)),
+        inner: ui.ImageFilter.blur(sigmaX: spec.sigma, sigmaY: spec.sigma, tileMode: TileMode.mirror),
+      ),
     );
   }
+
+  /// Number of distinct cached backdrop filters. Test hook.
+  @visibleForTesting
+  static int get cachedFilterCount => _filters.length;
+
+  /// Smallest light movement that is published to listening surfaces.
+  static const double lightStep = 0.015;
 
   /// Light direction used when nothing moves: up and to the left.
   static const Offset restingLight = Offset(-0.7, -0.7);

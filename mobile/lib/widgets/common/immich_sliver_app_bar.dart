@@ -68,7 +68,7 @@ class ImmichSliverAppBar extends ConsumerWidget {
           pinned: pinned,
           snap: snap,
           expandedHeight: largeTitle == null ? expandedHeight : (expandedHeight ?? _kLargeTitleExtent),
-          flexibleSpace: _GlassAppBarBackground(largeTitle: largeTitle, pinned: pinned),
+          flexibleSpace: GlassAppBarBackground(largeTitle: largeTitle, pinned: pinned),
           automaticallyImplyLeading: false,
           centerTitle: false,
           title: largeTitle != null ? null : (title ?? const _ImmichLogoWithText()),
@@ -94,8 +94,9 @@ const double _kLargeTitleExtent = kToolbarHeight + 62;
 
 /// Flexible space of the glass app bar: glass condenses in as the content
 /// scrolls under it and a large title collapses into the toolbar.
-class _GlassAppBarBackground extends StatelessWidget {
-  const _GlassAppBarBackground({required this.largeTitle, required this.pinned});
+@visibleForTesting
+class GlassAppBarBackground extends StatelessWidget {
+  const GlassAppBarBackground({super.key, required this.largeTitle, required this.pinned});
 
   final String? largeTitle;
   final bool pinned;
@@ -114,6 +115,8 @@ class _GlassAppBarBackground extends StatelessWidget {
       collapse = 1;
     }
     final title = largeTitle;
+    final expandedAlpha = (1 - collapse * 1.6).clamp(0.0, 1.0);
+    final collapsedAlpha = ((collapse - 0.55) / 0.45).clamp(0.0, 1.0);
     // Large titles collapse; a plain pinned bar condenses as soon as content scrolls under it.
     final condense = title == null ? (pinned ? collapse : 1.0) : Curves.easeOut.transform(collapse);
     final top = MediaQuery.paddingOf(context).top;
@@ -126,8 +129,10 @@ class _GlassAppBarBackground extends StatelessWidget {
             left: 20,
             right: 96,
             bottom: 10,
-            child: Opacity(
-              opacity: (1 - collapse * 1.6).clamp(0.0, 1.0),
+            // Fade through the text colour: an Opacity widget would add a saveLayer per scroll frame.
+            // The invisible copy stays out of the semantics tree, as with Opacity.
+            child: ExcludeSemantics(
+              excluding: expandedAlpha == 0,
               child: Transform.scale(
                 scale: 1 - 0.16 * collapse,
                 alignment: Alignment.bottomLeft,
@@ -135,7 +140,10 @@ class _GlassAppBarBackground extends StatelessWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: tokens.ink, height: 1.05),
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    color: tokens.ink.withValues(alpha: tokens.ink.a * expandedAlpha),
+                    height: 1.05,
+                  ),
                 ),
               ),
             ),
@@ -147,9 +155,14 @@ class _GlassAppBarBackground extends StatelessWidget {
             height: kToolbarHeight,
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Opacity(
-                opacity: ((collapse - 0.55) / 0.45).clamp(0.0, 1.0),
-                child: Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: tokens.ink)),
+              child: ExcludeSemantics(
+                excluding: collapsedAlpha == 0,
+                child: Text(
+                  title,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(color: tokens.ink.withValues(alpha: tokens.ink.a * collapsedAlpha)),
+                ),
               ),
             ),
           ),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -9,9 +10,11 @@ import 'package:immich_mobile/theme/glass/glass_tokens.dart';
 ///
 /// Three large radial blobs derived from the primary colour move on
 /// incommensurate sine paths over a deep canvas gradient. The field repaints at
-/// about 20 fps (it moves a few pixels per second, so more frames are invisible
-/// cost), stops while its route is hidden ([TickerMode]) and is static when the
-/// user disabled animations.
+/// about 12 fps (it moves a few pixels per second, so more frames are invisible
+/// cost), freezes while a vertical scrollable below it moves (every frame of a
+/// scroll already costs enough, and the content above it is blurring or
+/// translating), stops while its route is hidden ([TickerMode]) and is static
+/// when the user disabled animations.
 class AmbientBackground extends StatefulWidget {
   const AmbientBackground({super.key, this.child, this.intensity = 1.0});
 
@@ -39,19 +42,54 @@ class AmbientBackground extends StatefulWidget {
 }
 
 class _AmbientBackgroundState extends State<AmbientBackground> with SingleTickerProviderStateMixin {
-  static const _frame = Duration(milliseconds: 48);
+  static const _frame = Duration(milliseconds: 83);
+
+  /// Scrolling counts as over this long after the last scroll notification.
+  /// Re-armed by every update, so a scrollable that vanishes mid-scroll (and
+  /// never reports its end) cannot freeze the drift.
+  static const _resumeDelay = Duration(milliseconds: 300);
 
   final ValueNotifier<double> _seconds = ValueNotifier<double>(8);
   late final Ticker _ticker = createTicker(_onTick);
   Duration _last = Duration.zero;
   bool _animate = true;
+  bool _scrolling = false;
+  Timer? _resume;
+
+  /// Whether the drift is currently advancing. Test hook.
+  @visibleForTesting
+  bool get isDrifting => _ticker.isTicking && !_scrolling;
+
+  /// Current phase of the drift in seconds. Test hook.
+  @visibleForTesting
+  double get phase => _seconds.value;
 
   void _onTick(Duration elapsed) {
-    if (elapsed - _last < _frame) {
+    if (_scrolling) {
+      return;
+    }
+    final delta = elapsed - _last;
+    if (delta < _frame) {
       return;
     }
     _last = elapsed;
-    _seconds.value = 8 + elapsed.inMilliseconds / 1000;
+    // Do not let the field jump after a pause (scroll, or a restarted ticker).
+    final step = delta > _frame * 2 ? _frame : delta;
+    _seconds.value += step.inMicroseconds / Duration.microsecondsPerSecond;
+  }
+
+  bool _onScroll(ScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+    if (notification is ScrollStartNotification ||
+        notification is ScrollUpdateNotification ||
+        notification is ScrollEndNotification) {
+      _scrolling = true;
+      _resume?.cancel();
+      _resume = Timer(_resumeDelay, () => _scrolling = false);
+    }
+    return false;
   }
 
   @override
@@ -59,6 +97,7 @@ class _AmbientBackgroundState extends State<AmbientBackground> with SingleTicker
     super.didChangeDependencies();
     _animate = AmbientBackground.animationsEnabled && !(MediaQuery.maybeDisableAnimationsOf(context) ?? false);
     if (_animate && !_ticker.isActive) {
+      _last = Duration.zero;
       _ticker.start();
     } else if (!_animate && _ticker.isActive) {
       _ticker.stop();
@@ -67,6 +106,7 @@ class _AmbientBackgroundState extends State<AmbientBackground> with SingleTicker
 
   @override
   void dispose() {
+    _resume?.cancel();
     _ticker.dispose();
     _seconds.dispose();
     super.dispose();
@@ -84,7 +124,8 @@ class _AmbientBackgroundState extends State<AmbientBackground> with SingleTicker
             size: Size.infinite,
           ),
         ),
-        if (widget.child != null) widget.child!,
+        if (widget.child != null)
+          NotificationListener<ScrollNotification>(onNotification: _onScroll, child: widget.child!),
       ],
     );
   }
