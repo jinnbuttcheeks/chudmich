@@ -10,6 +10,16 @@ void main() {
       expect(version.patch, 3);
     });
 
+    test('Reads the server-facing version from a Chudmich build suffix', () {
+      final version = SemVer.fromString('3.4.1-chudmich.3');
+      expect((version.major, version.minor, version.patch), (3, 4, 1));
+      expect(version.prerelease, isNull);
+      expect(version == SemVer.fromString('3.4.1'), isTrue);
+      expect(version.toString(), '3.4.1');
+      expect(SemVer.fromString('3.4.1-chudmich.3') < SemVer.fromString('3.5.0'), isTrue);
+      expect(SemVer.fromString('3.4.1-chudmich.3-DEBUG') == SemVer.fromString('3.4.1'), isTrue);
+    });
+
     test('Throws FormatException for invalid version strings', () {
       expect(() => SemVer.fromString('1.2'), throwsFormatException);
       expect(() => SemVer.fromString('a.b.c'), throwsFormatException);
