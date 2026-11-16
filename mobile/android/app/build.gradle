@@ -43,9 +43,9 @@ android {
     minSdk = 26
     targetSdk = flutter.targetSdkVersion
     // The semantic version (3.4.1) must stay intact: the app compares it with the server version.
-    // chudmich.3: pubspec build number (3040199) + 3 = 3040202. Bump the offset with every Chudmich release.
-    versionCode flutter.versionCode + 3
-    versionName "${flutter.versionName}-chudmich.3"
+    // chudmich.4: pubspec build number (3040199) + 4 = 3040203. Bump the offset with every Chudmich release.
+    versionCode flutter.versionCode + 4
+    versionName "${flutter.versionName}-chudmich.4"
     resValue "string", "app_name", "Chudmich"
     buildConfigField "boolean", "PASSKEYS", "true"
   }
