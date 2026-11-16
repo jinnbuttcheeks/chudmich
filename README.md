@@ -1,16 +1,17 @@
 # Chudmich
 
-A premium liquid-glass Android client for [Immich](https://github.com/immich-app/immich).
+A solid, AIOStreams-inspired Android client for [Immich](https://github.com/immich-app/immich).
 
 Chudmich is a fork of the Immich mobile app at **v3.4.1** and works with **Immich server 3.4.1**. It talks to your server through the unchanged Immich API, so nothing needs to be installed server-side.
 
 ## Highlights
 
-- **Liquid glass design system.** Blurred, tinted and lit glass surfaces with a specular rim, derived from the active theme so dynamic color, the primary-color setting and light/dark mode keep working.
-- **Redesigned screens.** Photos timeline, library dashboard, albums, search, viewer and settings, plus a floating navigation bar with a sliding glass lens.
+- **Solid design system.** Flat surfaces, hairline borders, one violet accent and no blur anywhere, inspired by the [AIOStreams](https://github.com/Viren070/AIOStreams) web UI. It is derived from the active theme, so dynamic color, the primary-color setting and light/dark mode keep working.
+- **Redesigned screens.** Photos timeline, library dashboard, albums, search, viewer and settings, plus a floating pill navigation bar that hides while you scroll down.
+- **Smooth video viewer.** Swiping across videos no longer sticks or lags: a video surface is only created once its page has settled, position updates are throttled, and the viewer controls are cheap solid scrims.
 - **Spring motion with reduce-motion support.** Interruptible springs for navigation, sheets, press feedback and hero transitions; every animation degrades to instant or a fade when the system disables animations.
 - **Faster viewer preloading.** The viewer warms the next images in the direction of travel, so consecutive swipes find their image already decoded.
-- **Performance guardrails.** A budget on live blur layers, static glass over scrolling content, cached filters and a background that pauses while you scroll.
+- **Performance first.** No blur, no saveLayer-heavy effects, pre-baked shadows and no ticker running while idle.
 
 Design notes, the list of changes and the performance reasoning are in [`mobile/CHUDMICH.md`](mobile/CHUDMICH.md).
 
@@ -37,7 +38,7 @@ flutter build apk --release
 
 The APK is written to `mobile/build/app/outputs/flutter-apk/app-release.apk`. Without a keystore at `mobile/android/key.jks`, the release build falls back to the debug key, which is fine for local use.
 
-CI is defined in [`.github/workflows/chudmich-android.yml`](.github/workflows/chudmich-android.yml). Pushing a tag that matches `chudmich-v*` (for example `chudmich-v3.4.1-3`) builds a release APK, signs it with the key stored in the `PREMIUM_*` repository secrets and publishes a prerelease named "Chudmich 3.4.1-3". Without the signing secrets the APK is only attached to the workflow run. More detail on signing and packaging is in [`mobile/CHUDMICH.md`](mobile/CHUDMICH.md).
+CI is defined in [`.github/workflows/chudmich-android.yml`](.github/workflows/chudmich-android.yml). Pushing a tag that matches `chudmich-v*` (for example `chudmich-v3.4.1-4`) builds a release APK, signs it with the key stored in the `PREMIUM_*` repository secrets and publishes a prerelease named "Chudmich 3.4.1-4". Without the signing secrets the APK is only attached to the workflow run. More detail on signing and packaging is in [`mobile/CHUDMICH.md`](mobile/CHUDMICH.md).
 
 ## License and credits
 
