@@ -1,126 +1,48 @@
-<p align="center"> 
-  <br/>
-  <a href="https://opensource.org/license/agpl-v3"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg?color=3F51B5&style=for-the-badge&label=License&logoColor=000000&labelColor=ececec" alt="License: AGPLv3"></a>
-  <a href="https://discord.immich.app">
-    <img src="https://img.shields.io/discord/979116623879368755.svg?label=Discord&logo=Discord&style=for-the-badge&logoColor=000000&labelColor=ececec" alt="Discord"/>
-  </a>
-  <br/>
-  <br/>
-</p>
+# Chudmich
 
-<p align="center">
-<img src="design/immich-logo-stacked-light.svg" width="300" title="Login With Custom URL">
-</p>
-<h3 align="center">High performance self-hosted photo and video management solution</h3>
-<br/>
-<a href="https://immich.app">
-<img src="design/immich-screenshots.png" title="Main Screenshot">
-</a>
-<br/>
+A premium liquid-glass Android client for [Immich](https://github.com/immich-app/immich).
 
-<p align="center">
-  <a href="readme_i18n/README_ca_ES.md">Català</a>
-  <a href="readme_i18n/README_es_ES.md">Español</a>
-  <a href="readme_i18n/README_fr_FR.md">Français</a>
-  <a href="readme_i18n/README_it_IT.md">Italiano</a>
-  <a href="readme_i18n/README_ja_JP.md">日本語</a>
-  <a href="readme_i18n/README_ko_KR.md">한국어</a>
-  <a href="readme_i18n/README_de_DE.md">Deutsch</a>
-  <a href="readme_i18n/README_nl_NL.md">Nederlands</a>
-  <a href="readme_i18n/README_tr_TR.md">Türkçe</a>
-  <a href="readme_i18n/README_zh_CN.md">简体中文</a>
-  <a href="readme_i18n/README_zh_TW.md">正體中文</a>
-  <a href="readme_i18n/README_uk_UA.md">Українська</a>
-  <a href="readme_i18n/README_ru_RU.md">Русский</a>
-  <a href="readme_i18n/README_bg_BG.md">Български</a>
-  <a href="readme_i18n/README_pl_PL.md">Polski</a>
-  <a href="readme_i18n/README_pt_BR.md">Português Brasileiro</a>
-  <a href="readme_i18n/README_sv_SE.md">Svenska</a>
-  <a href="readme_i18n/README_ar_JO.md">العربية</a>
-  <a href="readme_i18n/README_vi_VN.md">Tiếng Việt</a>
-  <a href="readme_i18n/README_th_TH.md">ภาษาไทย</a>
-  <a href="readme_i18n/README_ml_IN.md">മലയാളം</a>
-</p>
+Chudmich is a fork of the Immich mobile app at **v3.4.1** and works with **Immich server 3.4.1**. It talks to your server through the unchanged Immich API, so nothing needs to be installed server-side.
 
+## Highlights
 
-> [!WARNING]
-> ⚠️ Always follow [3-2-1](https://www.backblaze.com/blog/the-3-2-1-backup-strategy/) backup plan for your precious photos and videos!
-> 
- 
+- **Liquid glass design system.** Blurred, tinted and lit glass surfaces with a specular rim, derived from the active theme so dynamic color, the primary-color setting and light/dark mode keep working.
+- **Redesigned screens.** Photos timeline, library dashboard, albums, search, viewer and settings, plus a floating navigation bar with a sliding glass lens.
+- **Spring motion with reduce-motion support.** Interruptible springs for navigation, sheets, press feedback and hero transitions; every animation degrades to instant or a fade when the system disables animations.
+- **Faster viewer preloading.** The viewer warms the next images in the direction of travel, so consecutive swipes find their image already decoded.
+- **Performance guardrails.** A budget on live blur layers, static glass over scrolling content, cached filters and a background that pauses while you scroll.
 
-> [!NOTE]
-> You can find the main documentation, including installation guides, at https://immich.app/.
+Design notes, the list of changes and the performance reasoning are in [`mobile/CHUDMICH.md`](mobile/CHUDMICH.md).
 
-## Links
+## Install
 
-- [Documentation](https://docs.immich.app/)
-- [About](https://docs.immich.app/overview/introduction)
-- [Installation](https://docs.immich.app/install/requirements)
-- [Roadmap](https://immich.app/roadmap)
-- [Demo](#demo)
-- [Features](#features)
-- [Translations](https://docs.immich.app/developer/translations)
-- [Contributing](https://docs.immich.app/overview/support-the-project)
+1. Download the latest `chudmich-*.apk` from the [releases page](https://github.com/jinnbuttcheeks/chudmich/releases). Releases are marked as prereleases.
+2. Open the file on your device and allow installation from your browser or file manager when Android asks.
 
-## Demo
+Chudmich uses its own application id, so it installs alongside the official Immich app. Updates install in place over the previous Chudmich build.
 
-Access the demo [here](https://demo.immich.app). For the mobile app, you can use `https://demo.immich.app` for the `Server Endpoint URL`.
+- If you installed the first build (`premium-v3.4.1-1`), uninstall it once. It was signed with a temporary key; every later build uses a permanent signing key.
+- If you sign in with OAuth and the official Immich app is also installed, Android may show an app chooser when the browser returns to the app. Pick Chudmich.
 
-### Login credentials
+## Build
 
-| Email           | Password |
-| --------------- | -------- |
-| demo@immich.app | demo     |
+Local build (needs the toolchain from `mise.toml` and a few GB of free memory for Gradle; native codegen needs `libclang`):
 
-## Features
+```sh
+mise //mobile:install:ci
+mise //mobile:codegen
+cd mobile
+flutter build apk --release
+```
 
-| Features                                     | Mobile | Web |
-| :------------------------------------------- | ------ | --- |
-| Upload and view videos and photos            | Yes    | Yes |
-| Auto backup when the app is opened           | Yes    | N/A |
-| Prevent duplication of assets                | Yes    | Yes |
-| Selective album(s) for backup                | Yes    | N/A |
-| Download photos and videos to local device   | Yes    | Yes |
-| Multi-user support                           | Yes    | Yes |
-| Album and Shared albums                      | Yes    | Yes |
-| Scrubbable/draggable scrollbar               | Yes    | Yes |
-| Support raw formats                          | Yes    | Yes |
-| Metadata view (EXIF, map)                    | Yes    | Yes |
-| Search by metadata, objects, faces, and CLIP | Yes    | Yes |
-| Administrative functions (user management)   | No     | Yes |
-| Background backup                            | Yes    | N/A |
-| Virtual scroll                               | Yes    | Yes |
-| OAuth support                                | Yes    | Yes |
-| API Keys                                     | N/A    | Yes |
-| LivePhoto/MotionPhoto backup and playback    | Yes    | Yes |
-| Support 360 degree image display             | No     | Yes |
-| User-defined storage structure               | Yes    | Yes |
-| Public Sharing                               | Yes    | Yes |
-| Archive and Favorites                        | Yes    | Yes |
-| Global Map                                   | Yes    | Yes |
-| Partner Sharing                              | Yes    | Yes |
-| Facial recognition and clustering            | Yes    | Yes |
-| Memories (x years ago)                       | Yes    | Yes |
-| Offline support                              | Yes    | No  |
-| Read-only gallery                            | Yes    | Yes |
-| Stacked Photos                               | Yes    | Yes |
-| Tags                                         | No     | Yes |
-| Folder View                                  | Yes    | Yes |
+The APK is written to `mobile/build/app/outputs/flutter-apk/app-release.apk`. Without a keystore at `mobile/android/key.jks`, the release build falls back to the debug key, which is fine for local use.
 
-## Translations
+CI is defined in [`.github/workflows/chudmich-android.yml`](.github/workflows/chudmich-android.yml). Pushing a tag that matches `chudmich-v*` (for example `chudmich-v3.4.1-3`) builds a release APK, signs it with the key stored in the `PREMIUM_*` repository secrets and publishes a prerelease named "Chudmich 3.4.1-3". Without the signing secrets the APK is only attached to the workflow run. More detail on signing and packaging is in [`mobile/CHUDMICH.md`](mobile/CHUDMICH.md).
 
-Read more about translations [here](https://docs.immich.app/developer/translations).
+## License and credits
 
-<a href="https://hosted.weblate.org/engage/immich/">
-<img src="https://hosted.weblate.org/widget/immich/immich/multi-auto.svg" alt="Translation status" />
-</a>
+Chudmich is licensed under the [GNU AGPL-3.0](LICENSE), the same license as Immich.
 
-## Repository activity
+It builds on the work of the [Immich project](https://github.com/immich-app/immich) and its contributors. Please support upstream if you find it useful.
 
-![Activities](https://repobeats.axiom.co/api/embed/9e86d9dc3ddd137161f2f6d2e758d7863b1789cb.svg "Repobeats analytics image")
-
-## Contributors
-
-<a href="https://github.com/immich-app/immich/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=immich-app/immich" width="100%"/>
-</a>
+Chudmich is not affiliated with or endorsed by the Immich project. Immich is a trademark of its respective owners.

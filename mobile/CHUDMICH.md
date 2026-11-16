@@ -1,4 +1,4 @@
-# Immich Premium (Android fork build)
+# Chudmich (Android fork build)
 
 Branch `premium-ui`, based on upstream `v3.4.1`. Only `mobile/` and one CI workflow change; the server API contract is untouched.
 
@@ -29,9 +29,9 @@ What upstream 3.4.1 already does well and was left alone: scroll cache of two vi
 ## Packaging (Android)
 
 - `applicationId`: `app.alextran.immich.jinn` (`applicationIdSuffix ".jinn"`; Kotlin `namespace` unchanged). Debug builds become `...jinn.debug`.
-- Launcher label: "Immich Premium" (`app_name` resource).
-- Version: `versionName 3.4.1-premium.2` (premium.1 was the first pass) (the app's `SemVer` parser accepts the suffix and reads 3.4.1, so the server compatibility check is unchanged); `versionCode` = pubspec build number + 2 (`3040199 + 2 = 3040201`; premium.1 used +1 = 3040200).
-- Collision audit: the manifest declares no `<provider>`/authorities; services, WorkManager and widget receivers use relative names; plugin authorities derive from `${applicationId}`; no hard-coded package strings in Kotlin. Custom URL schemes (`immich://`, `app.immich:/oauth-callback`) are shared with the official app. OAuth keeps working because the server's redirect URI is fixed at `app.immich:///oauth-callback`; with both apps installed Android may show an app chooser on the OAuth return, pick "Immich Premium".
+- Launcher label: "Chudmich" (`app_name` resource).
+- Version: `versionName 3.4.1-chudmich.3` (earlier builds were `premium.1` and `premium.2`; the app's `SemVer` parser accepts the suffix and reads 3.4.1, so the server compatibility check is unchanged, see `test/unit/utils/semver_test.dart`); `versionCode` = pubspec build number + 3 (`3040199 + 3 = 3040202`; premium.1 used +1, premium.2 +2), so updates install in place.
+- Collision audit: the manifest declares no `<provider>`/authorities; services, WorkManager and widget receivers use relative names; plugin authorities derive from `${applicationId}`; no hard-coded package strings in Kotlin. Custom URL schemes (`immich://`, `app.immich:/oauth-callback`) are shared with the official app. OAuth keeps working because the server's redirect URI is fixed at `app.immich:///oauth-callback`; with both apps installed Android may show an app chooser on the OAuth return, pick "Chudmich".
 - Release builds fall back to debug signing only when `android/key.jks` is missing (local builds). When the keystore exists, Gradle validates it before any release task runs (`gradle.taskGraph.whenReady` in `app/build.gradle`): it needs `ALIAS`, `ANDROID_KEY_PASSWORD` and `ANDROID_STORE_PASSWORD` (or `key.properties`), opens the PKCS12 store and checks alias and key password, and fails the build with a `GradleException` instead of silently signing with debug.
 
 ## Building
@@ -44,11 +44,11 @@ Locally (needs the toolchain from `mise.toml` and a few GB of free RAM for Gradl
 
 `codegen:native` runs ffigen, which needs `libclang` (Ubuntu: `libclang-dev`).
 
-CI: `.github/workflows/premium-android.yml` runs on `workflow_dispatch` and on `premium-v*` tags, only in `jinnbuttcheeks/immich`. It uploads the APK as the `immich-premium-apk` artifact; on tag pushes it also creates a prerelease named after the tag with the APK attached. Example: `git tag premium-v3.4.1-1 && git push origin premium-v3.4.1-1`.
+CI: `.github/workflows/chudmich-android.yml` runs on `workflow_dispatch` and on `chudmich-v*` (and legacy `premium-v*`) tags, only in `jinnbuttcheeks/chudmich`. It uploads the APK as the `chudmich-apk` artifact; on tag pushes it also creates a prerelease titled "Chudmich <version>" (tag minus its prefix, so `chudmich-v3.4.1-3` becomes "Chudmich 3.4.1-3") with `chudmich-<tag>.apk` attached. Example: `git tag chudmich-v3.4.1-3 && git push origin chudmich-v3.4.1-3`.
 
-## Liquid Glass (premium.2)
+## Liquid Glass
 
-premium.2 replaces the stock Material look with a glass language. All of it lives in `lib/theme/glass/` and is applied from there, with no scattered blur code.
+The glass pass (first shipped in premium.2) replaces the stock Material look with a glass language. All of it lives in `lib/theme/glass/` and is applied from there, with no scattered blur code.
 
 ### Design language
 
@@ -83,20 +83,28 @@ premium.2 replaces the stock Material look with a glass language. All of it live
 - `BackdropGroup` was evaluated and not used: the filters do not overlap and the saving is small.
 - The preload window and decode sizes described above are untouched.
 - Numbers are not measured on a device; profile with DevTools before tuning sigma or the budget.
-- Tests: `test/theme/glass/glass_test.dart` covers the saturation matrix, shimmer math, variant ordering, budget grant/release, and ambient bounds. `test/flutter_test_config.dart` disables the ambient animation so `pumpAndSettle` settles.
+- **Chudmich performance pass** (derived numbers, not measured on a device):
+  - `GlassScrollActivity` (fed by `GlassScrollActivityListener` in the tab shell, vertical scrolls only, 220 ms debounced end) tells glass over the grid to go static. `GlassBar` (app bar) and the nav bar (`GlassSurface(scrollAware: true)`) swap the live blur for the denser fake-glass tint over 120 ms while scrolling and ease back over 260 ms when idle. Live full-width blurs over a moving grid: 2 (app bar + nav bar) to 0 while scrolling.
+  - The scrubber date bubble is fake glass (its thick tint is 0.92 dense, so the blur was barely visible): one fewer blurred layer during scrubbing.
+  - `GlassMath.backdropFilter` caches one `ImageFilter` per recipe (3 filters live in total) instead of allocating a compose filter and a 20-entry matrix on every build.
+  - `AmbientBackground` runs at about 12 fps (was 20) and freezes while a vertical scrollable below it moves (resumes 300 ms after it settles); its clock no longer jumps when it resumes.
+  - The light that drives rim and glow repaints publishes at most every 0.015 units (about 10 px of scroll, was about 3 px), cutting glass repaints during scrolling roughly 3x.
+  - App bar title fades use text colour alpha instead of two `Opacity` widgets (no `saveLayer` per scroll frame).
+  - `BackdropGroup` was evaluated again and not used: the remaining live filters do not share a backdrop.
+- Tests: `test/theme/glass/glass_performance_test.dart` covers filter caching, the scroll gate, ticker idleness and the light step. `test/theme/glass/glass_test.dart` covers the saturation matrix, shimmer math, variant ordering, budget grant/release, and ambient bounds. `test/flutter_test_config.dart` disables the ambient animation so `pumpAndSettle` settles.
 
 ### Release signing
 
-CI (`.github/workflows/premium-android.yml`) uses four repository secrets: `PREMIUM_KEYSTORE_B64` (base64 of the PKCS12 `.jks`), `PREMIUM_STORE_PASSWORD`, `PREMIUM_KEY_ALIAS`, `PREMIUM_KEY_PASSWORD`.
+CI (`.github/workflows/chudmich-android.yml`) uses four repository secrets: `PREMIUM_KEYSTORE_B64` (base64 of the PKCS12 `.jks`), `PREMIUM_STORE_PASSWORD`, `PREMIUM_KEY_ALIAS`, `PREMIUM_KEY_PASSWORD`.
 
 - With the keystore secret present: it is decoded to `mobile/android/key.jks` (never echoed), the three env vars Gradle reads (`ALIAS`, `ANDROID_KEY_PASSWORD`, `ANDROID_STORE_PASSWORD`) are set for the build step only, the APK is verified with `apksigner verify --print-certs` (only the SHA-256 digest is printed), and tag pushes publish the prerelease. The keystore is deleted in an `if: always()` step.
 - With the secret missing or empty: the APK is still built and uploaded as an artifact, no release is published, and a `::warning::` explains why.
 - `key.jks` is gitignored. Never commit a keystore or passwords.
 
-**One-time reinstall:** premium.1 was signed with a throwaway debug key. premium.2 and later use the permanent key, so premium.1 must be uninstalled once before installing premium.2. Later updates install over each other.
+**One-time reinstall:** premium.1 (`premium-v3.4.1-1`) was signed with a throwaway debug key. Every later build uses the permanent key, so premium.1 must be uninstalled once. Later updates install over each other.
 
 ### Screenshots
 
 `test/screens/screens_test.dart` renders the redesigned widgets over sample data (dark and light) with the real fonts loaded. It is skipped unless `SCREENSHOT_DIR` is set:
 
-    SCREENSHOT_DIR=/workspace/builds/immich-premium/screens flutter test test/screens
+    SCREENSHOT_DIR=/workspace/builds/chudmich/screens flutter test test/screens
