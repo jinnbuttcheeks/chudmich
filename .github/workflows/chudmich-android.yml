@@ -1,22 +1,23 @@
-name: Premium Android
+name: Chudmich Android
 
 on:
   workflow_dispatch:
   push:
     tags:
+      - 'chudmich-v*'
       - 'premium-v*'
 
 permissions:
   contents: read
 
 concurrency:
-  group: premium-android-${{ github.ref }}
+  group: chudmich-android-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build-apk:
     name: Build release APK
-    if: github.repository == 'jinnbuttcheeks/immich'
+    if: github.repository == 'jinnbuttcheeks/chudmich'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     # Only the release step needs to write; it is scoped to tag pushes below.
@@ -48,9 +49,9 @@ jobs:
             ~/.cargo/bin
             ~/.cargo/registry
             ~/.cargo/git
-          key: premium-android-rust-${{ runner.os }}-${{ hashFiles('native/crates/native_core_ffi/rust-toolchain.toml', 'native/Cargo.lock') }}
+          key: chudmich-android-rust-${{ runner.os }}-${{ hashFiles('native/crates/native_core_ffi/rust-toolchain.toml', 'native/Cargo.lock') }}
           restore-keys: |
-            premium-android-rust-${{ runner.os }}-
+            chudmich-android-rust-${{ runner.os }}-
 
       - name: Setup Mise
         uses: immich-app/devtools/actions/use-mise@caac7f7e4298458a14238959504f411fc6cc7f06 # use-mise-action-v3.2.3
@@ -66,9 +67,9 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
             mobile/android/.gradle
-          key: premium-android-gradle-${{ runner.os }}-${{ hashFiles('mobile/android/**/*.gradle', 'mobile/android/gradle/libs.versions.toml', 'mobile/pubspec.lock') }}
+          key: chudmich-android-gradle-${{ runner.os }}-${{ hashFiles('mobile/android/**/*.gradle', 'mobile/android/gradle/libs.versions.toml', 'mobile/pubspec.lock') }}
           restore-keys: |
-            premium-android-gradle-${{ runner.os }}-
+            chudmich-android-gradle-${{ runner.os }}-
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
@@ -122,7 +123,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: immich-premium-apk
+          name: chudmich-apk
           path: mobile/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
 
@@ -133,10 +134,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
-          cp mobile/build/app/outputs/flutter-apk/app-release.apk "immich-premium-${TAG}.apk"
-          gh release create "$TAG" "immich-premium-${TAG}.apk" \
+          VERSION="${TAG#chudmich-v}"
+          VERSION="${VERSION#premium-v}"
+          cp mobile/build/app/outputs/flutter-apk/app-release.apk "chudmich-${TAG}.apk"
+          gh release create "$TAG" "chudmich-${TAG}.apk" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "$TAG" \
+            --title "Chudmich ${VERSION}" \
             --prerelease \
             --generate-notes
 
