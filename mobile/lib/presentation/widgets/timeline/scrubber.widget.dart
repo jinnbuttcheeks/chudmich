@@ -452,7 +452,7 @@ class _ScrollLabel extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: SolidSurface(
-              radius: 22,
+              radius: SolidTokens.radiusPill,
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
               child: label,
             ),

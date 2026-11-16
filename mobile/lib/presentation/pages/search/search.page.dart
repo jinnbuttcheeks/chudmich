@@ -985,8 +985,7 @@ class _QuickLink extends StatelessWidget {
         onTap: onTap,
         child: SolidSurface(
           floating: false,
-          radius: 24,
-          color: Color.alphaBlend(hue.withValues(alpha: tokens.isDark ? 0.18 : 0.14), tokens.paper),
+          radius: SolidTokens.radiusCard,
           padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

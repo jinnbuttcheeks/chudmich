@@ -28,7 +28,7 @@ class AssetDetails extends ConsumerWidget {
     return ConstrainedBox(
       constraints: BoxConstraints(minHeight: minHeight),
       child: SolidSurface(
-        radius: 32,
+        radius: SolidTokens.radiusSheet,
         child: SafeArea(
           top: false,
           child: Column(

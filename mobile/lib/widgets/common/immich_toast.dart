@@ -30,7 +30,7 @@ class ImmichToast {
 
     fToast.showToast(
       child: SolidSurface(
-        radius: 24,
+        radius: SolidTokens.radiusCard,
         padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 13.0),
         child: Row(
           mainAxisSize: MainAxisSize.min,

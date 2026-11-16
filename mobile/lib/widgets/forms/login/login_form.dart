@@ -605,7 +605,7 @@ class LoginForm extends HookConsumerWidget {
                   // Note: This used to have an AnimatedSwitcher, but was removed
                   // because of https://github.com/flutter/flutter/issues/120874
                   SolidSurface(
-                    radius: 32,
+                    radius: SolidTokens.radiusSheet,
                     padding: const EdgeInsets.all(20),
                     child: Form(key: loginFormKey, child: serverSelectionOrLogin),
                   ),

@@ -22,7 +22,7 @@ class AlbumTile extends ConsumerWidget {
 
     return SolidSurface(
       floating: false,
-      radius: 26,
+      radius: SolidTokens.radiusCard,
       padding: const EdgeInsets.all(4),
       child: LargeLeadingTile(
         title: Text(

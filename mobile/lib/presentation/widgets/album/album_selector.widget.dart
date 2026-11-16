@@ -666,7 +666,7 @@ class _GridAlbumCard extends ConsumerWidget {
                 bottom: 8,
                 child: SolidSurface(
                   floating: false,
-                  radius: 20,
+                  radius: SolidTokens.radiusCard,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

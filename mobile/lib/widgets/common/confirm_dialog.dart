@@ -25,7 +25,7 @@ class ConfirmDialog extends StatelessWidget {
       elevation: 0,
       insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
       child: SolidSurface(
-        radius: 32,
+        radius: SolidTokens.radiusSheet,
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,

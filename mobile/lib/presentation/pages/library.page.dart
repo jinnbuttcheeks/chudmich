@@ -158,7 +158,7 @@ class _LibraryDashboard extends ConsumerWidget {
   }
 }
 
-/// Card of the dashboard: a flat accent tinted surface with a hairline border.
+/// Card of the dashboard: a flat paper surface with a hairline border; only the icon carries color.
 @visibleForTesting
 class LibraryBentoCard extends StatelessWidget {
   const LibraryBentoCard({
@@ -191,17 +191,12 @@ class LibraryBentoCard extends StatelessWidget {
         onTap: onTap,
         child: SolidSurface(
           floating: false,
-          radius: 28,
-          color: Color.alphaBlend(hue.withValues(alpha: tokens.isDark ? 0.20 : 0.16), tokens.paper),
+          radius: SolidTokens.radiusCard,
           child: Stack(
             fit: StackFit.expand,
             children: [
               if (hero)
-                Positioned(
-                  right: -22,
-                  bottom: -26,
-                  child: Icon(icon, size: 150, color: hue.withValues(alpha: tokens.isDark ? 0.22 : 0.18)),
-                ),
+                Positioned(right: -22, bottom: -26, child: Icon(icon, size: 150, color: hue.withValues(alpha: 0.10))),
               if (preview != null) Positioned.fill(child: preview!),
               Padding(
                 padding: EdgeInsets.all(compact ? 14 : 16),
@@ -373,8 +368,7 @@ class LibraryWideCard extends StatelessWidget {
         onTap: onTap,
         child: SolidSurface(
           floating: false,
-          radius: 28,
-          color: Color.alphaBlend(hue.withValues(alpha: tokens.isDark ? 0.20 : 0.16), tokens.paper),
+          radius: SolidTokens.radiusCard,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           child: Row(
             children: [

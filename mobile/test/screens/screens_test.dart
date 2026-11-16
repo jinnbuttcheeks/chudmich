@@ -12,6 +12,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:immich_mobile/constants/colors.dart';
 import 'package:immich_mobile/domain/models/timeline.model.dart';
 import 'package:immich_mobile/domain/services/timeline.service.dart';
 import 'package:immich_mobile/presentation/pages/library.page.dart';
@@ -19,9 +20,11 @@ import 'package:immich_mobile/presentation/widgets/navigation/floating_nav_bar.d
 import 'package:immich_mobile/presentation/widgets/timeline/header.widget.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/scrubber.widget.dart';
 import 'package:immich_mobile/providers/infrastructure/timeline.provider.dart';
+import 'package:immich_mobile/theme/color_scheme.dart';
 import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:immich_mobile/theme/theme_data.dart';
 import 'package:immich_mobile/widgets/common/confirm_dialog.dart';
+import 'package:immich_mobile/widgets/common/search_field.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../unit/presentation/presentation_context.dart';
@@ -131,7 +134,8 @@ Future<void> _shoot(
   List<Override> overrides = const [],
 }) async {
   for (final brightness in Brightness.values) {
-    final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF4250AF), brightness: brightness);
+    final themes = decolorizeSurfaces(theme: ImmichColorPreset.indigo.themeOfPreset);
+    final scheme = brightness == Brightness.dark ? themes.dark : themes.light;
     final key = GlobalKey();
     tester.view.physicalSize = _size * 2.75;
     tester.view.devicePixelRatio = 2.75;
@@ -139,7 +143,12 @@ Future<void> _shoot(
       context,
       Theme(
         data: getThemeData(colorScheme: scheme, locale: const Locale('en')),
-        child: RepaintBoundary(key: key, child: screen(brightness)),
+        child: RepaintBoundary(
+          key: key,
+          child: Builder(
+            builder: (c) => ColoredBox(color: c.solid.canvas, child: screen(brightness)),
+          ),
+        ),
       ),
       expectSettle: false,
       overrides: overrides,
@@ -565,6 +574,135 @@ void main() {
                 children: [
                   Icon(Icons.ios_share_rounded, color: Colors.white),
                   Icon(Icons.tune_rounded, color: Colors.white),
+                  Icon(Icons.add_rounded, color: Colors.white),
+                  Icon(Icons.delete_outline_rounded, color: Colors.white),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    });
+  }, skip: skip);
+
+  testWidgets('search', (tester) async {
+    await _shoot(tester, context, 'search', (b) {
+      return Builder(
+        builder: (c) => ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 70, 16, 0),
+          children: [
+            Text('Search', style: c.textThemeLarge),
+            const SizedBox(height: 16),
+            const SearchField(hintText: 'Search your photos', prefixIcon: Icon(Icons.search_rounded)),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                SolidChip(label: 'People', selected: true, onTap: () {}),
+                SolidChip(label: 'Places', selected: false, onTap: () {}),
+                SolidChip(label: 'Camera', selected: false, onTap: () {}),
+                SolidChip(label: 'Videos', selected: false, onTap: () {}),
+              ],
+            ),
+            const SizedBox(height: 22),
+            for (final (icon, title) in [
+              (Icons.face_rounded, 'People'),
+              (Icons.place_rounded, 'Places'),
+              (Icons.photo_camera_rounded, 'Cameras'),
+            ]) ...[
+              SolidSurface(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  children: [
+                    SolidIconBadge(icon: icon, size: 36),
+                    const SizedBox(width: 12),
+                    Text(title, style: c.textThemeTitle),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+          ],
+        ),
+      );
+    });
+  }, skip: skip);
+
+  testWidgets('viewer chrome over video', (tester) async {
+    await _shoot(tester, context, 'viewer_video', (b) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          const ColoredBox(color: Color(0xFF1B2A3A)),
+          const _FakePhoto(31),
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 140,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: SolidTokens.scrim,
+                ),
+              ),
+            ),
+          ),
+          const Positioned(
+            top: 54,
+            left: 12,
+            child: SolidIconButton(
+              icon: Icons.arrow_back_rounded,
+              onPressed: null,
+              fill: SolidTokens.overPhoto,
+              color: Colors.white,
+            ),
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 96,
+            child: Row(
+              children: [
+                const Text('0:12', style: TextStyle(color: Colors.white)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Container(
+                        height: 4,
+                        decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                      ),
+                      Container(
+                        height: 4,
+                        width: 90,
+                        decoration: BoxDecoration(color: AioPalette.brand400, borderRadius: BorderRadius.circular(2)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Text('0:48', style: TextStyle(color: Colors.white)),
+              ],
+            ),
+          ),
+          const Positioned(
+            left: 16,
+            right: 16,
+            bottom: 24,
+            child: SolidSurface(
+              color: SolidTokens.overPhoto,
+              radius: SolidTokens.radiusPill,
+              padding: EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Icon(Icons.ios_share_rounded, color: Colors.white),
+                  Icon(Icons.pause_rounded, color: Colors.white),
                   Icon(Icons.add_rounded, color: Colors.white),
                   Icon(Icons.delete_outline_rounded, color: Colors.white),
                 ],
