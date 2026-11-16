@@ -28,6 +28,7 @@ class LoginPage extends HookWidget {
     });
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: LoginForm(),
       bottomNavigationBar: SafeArea(
         child: Padding(

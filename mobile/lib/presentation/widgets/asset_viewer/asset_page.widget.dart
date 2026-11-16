@@ -24,6 +24,7 @@ import 'package:immich_mobile/providers/asset_viewer/is_motion_video_playing.pro
 import 'package:immich_mobile/providers/infrastructure/settings.provider.dart';
 import 'package:immich_mobile/providers/infrastructure/timeline.provider.dart';
 import 'package:immich_mobile/providers/view_intent/view_intent_file_path.provider.dart';
+import 'package:immich_mobile/theme/premium_tokens.dart';
 import 'package:immich_mobile/widgets/common/immich_loading_indicator.dart';
 import 'package:immich_mobile/widgets/photo_view/photo_view.dart';
 
@@ -490,7 +491,10 @@ class _AssetPageState extends ConsumerState<AssetPage> {
                   child: _buildPhotoView(
                     asset: displayAsset,
                     heroAttributes: isCurrent
-                        ? PhotoViewHeroAttributes(tag: '${asset.heroTag}_${widget.heroOffset}')
+                        ? PhotoViewHeroAttributes(
+                            tag: '${asset.heroTag}_${widget.heroOffset}',
+                            createRectTween: _springRectTween,
+                          )
                         : null,
                     isCurrent: isCurrent,
                     isPlayingMotionVideo: isPlayingMotionVideo,
@@ -565,3 +569,5 @@ class _NativeVideoViewerKey extends GlobalKey {
   @override
   int get hashCode => value.hashCode;
 }
+
+RectTween _springRectTween(Rect? begin, Rect? end) => SpringRectTween(begin: begin, end: end);

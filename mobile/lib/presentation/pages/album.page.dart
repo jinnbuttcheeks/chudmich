@@ -4,9 +4,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
+import 'package:immich_mobile/generated/translations.g.dart';
 import 'package:immich_mobile/presentation/widgets/album/album_selector.widget.dart';
+import 'package:immich_mobile/presentation/widgets/common/bottom_inset_sliver.dart';
 import 'package:immich_mobile/providers/infrastructure/album.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
+import 'package:immich_mobile/theme/premium_tokens.dart';
 import 'package:immich_mobile/widgets/common/immich_sliver_app_bar.dart';
 
 @RoutePage()
@@ -43,6 +46,7 @@ class _AlbumsPageState extends ConsumerState<AlbumsPage> {
           snap: false,
           floating: false,
           pinned: true,
+          largeTitle: context.t.albums,
           actions: [
             IconButton(
               onPressed: () => context.pushRoute(const CreateAlbumRoute()),
@@ -56,12 +60,16 @@ class _AlbumsPageState extends ConsumerState<AlbumsPage> {
             unawaited(context.router.push(RemoteAlbumRoute(album: album)));
           },
         ),
+        const BottomInsetSliver(extra: 16),
       ],
     );
 
     return RefreshIndicator(
       onRefresh: onRefresh,
       edgeOffset: 100,
+      color: context.colorScheme.primary,
+      backgroundColor: context.premium.floatingSurface.withValues(alpha: 1),
+      elevation: 4,
       child: showScrollbar
           ? RawScrollbar(
               controller: _scrollController,

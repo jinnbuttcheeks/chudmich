@@ -157,6 +157,8 @@ class AppRouter extends RootStackRouter {
           settings: page,
           pageBuilder: (_, _, _) => child,
           opaque: false,
+          transitionDuration: const Duration(milliseconds: 420),
+          reverseTransitionDuration: const Duration(milliseconds: 340),
           transitionsBuilder: TransitionsBuilders.fadeIn,
         ),
       ),

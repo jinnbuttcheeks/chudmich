@@ -14,6 +14,7 @@ import 'package:immich_mobile/providers/asset_viewer/asset_viewer.provider.dart'
 import 'package:immich_mobile/providers/infrastructure/readonly_mode.provider.dart';
 import 'package:immich_mobile/providers/infrastructure/timeline.provider.dart';
 import 'package:immich_mobile/providers/routes.provider.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:immich_mobile/widgets/asset_viewer/video_controls.dart';
 import 'package:immich_ui/immich_ui.dart';
 
@@ -79,7 +80,7 @@ class ViewerBottomBar extends ConsumerWidget {
                           gradient: LinearGradient(
                             begin: Alignment.bottomCenter,
                             end: Alignment.topCenter,
-                            colors: [Colors.black45, Colors.black12, Colors.transparent],
+                            colors: [Colors.black38, Colors.black12, Colors.transparent],
                             stops: [0.0, 0.7, 1.0],
                           ),
                         ),
@@ -96,9 +97,17 @@ class ViewerBottomBar extends ConsumerWidget {
                           if (asset.isImage) OcrToggleButton(asset: asset),
                           if (asset.isVideo) VideoControls(videoPlayerName: asset.id),
                           if (!isReadonlyModeEnabled)
-                            ImmichColorOverride(
-                              color: Colors.white,
-                              child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: actions),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                              child: SolidSurface(
+                                color: SolidTokens.overPhoto,
+                                radius: 32,
+                                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                                child: ImmichColorOverride(
+                                  color: Colors.white,
+                                  child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: actions),
+                                ),
+                              ),
                             ),
                         ],
                       ),

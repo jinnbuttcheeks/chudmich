@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:immich_mobile/domain/models/asset/base_asset.model.dart';
 import 'package:immich_mobile/presentation/widgets/asset_viewer/video_viewer.widget.dart';
@@ -68,5 +69,82 @@ void main() {
     final source = await pumpViewer(tester, local);
 
     expect(source, isNull);
+  });
+
+  group('paging', () {
+    final surface = find.byType(NativeVideoPlayerView);
+
+    setUp(() {
+      // Platform view creation is a main-thread call on Android; tests only need it not to throw.
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform_views,
+        (_) async => null,
+      );
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform_views,
+        null,
+      );
+    });
+
+    testWidgets('a neighbour video page does not create the native player surface', (tester) async {
+      when(() => storage.getFileForAsset(local.id)).thenAnswer((_) async => null);
+
+      await pumpViewer(tester, remote);
+
+      expect(surface, findsNothing);
+    });
+
+    testWidgets('the surface is created once the page becomes current', (tester) async {
+      when(() => storage.getFileForAsset(local.id)).thenAnswer((_) async => null);
+
+      await tester.pumpTestWidget(
+        context,
+        NativeVideoViewer(asset: remote, image: const SizedBox(), isCurrent: true),
+        overrides: [storageRepositoryProvider.overrideWithValue(storage)],
+        expectSettle: false,
+      );
+
+      expect(surface, findsOneWidget);
+    });
+
+    testWidgets('swiping across a video page never builds the surface and settles on the next page', (tester) async {
+      when(() => storage.getFileForAsset(local.id)).thenAnswer((_) async => null);
+      final controller = PageController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpTestWidget(
+        context,
+        SizedBox(
+          width: 400,
+          height: 600,
+          child: PageView(
+            controller: controller,
+            children: [
+              const ColoredBox(color: Colors.red),
+              NativeVideoViewer(asset: remote, image: const SizedBox()),
+              const ColoredBox(color: Colors.blue),
+            ],
+          ),
+        ),
+        overrides: [storageRepositoryProvider.overrideWithValue(storage)],
+        expectSettle: false,
+      );
+
+      final gesture = await tester.startGesture(const Offset(300, 300));
+      await gesture.moveBy(const Offset(-250, 0));
+      await tester.pump();
+      expect(surface, findsNothing, reason: 'the video page is half on screen mid-drag');
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(controller.page, 1.0);
+
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1500);
+      await tester.pumpAndSettle();
+      expect(controller.page, 2.0);
+      expect(surface, findsNothing);
+    });
   });
 }

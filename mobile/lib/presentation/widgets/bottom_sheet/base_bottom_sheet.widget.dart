@@ -2,9 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:immich_mobile/extensions/build_context_extensions.dart';
-import 'package:immich_mobile/extensions/theme_extensions.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/timeline.state.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 
 class BaseBottomSheet extends ConsumerStatefulWidget {
   final List<Widget> actions;
@@ -74,38 +73,45 @@ class _BaseDraggableScrollableSheetState extends ConsumerState<BaseBottomSheet> 
       expand: widget.expand,
       shouldCloseOnMinExtent: widget.shouldCloseOnMinExtent,
       builder: (BuildContext context, ScrollController scrollController) {
-        return Card(
-          color: widget.backgroundColor ?? context.colorScheme.surfaceContainer,
-          elevation: 3.0,
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(18))),
-          margin: EdgeInsets.zero,
-          child: Column(
-            children: [
-              Expanded(
-                child: CustomScrollView(
-                  controller: scrollController,
-                  slivers: [
-                    const SliverToBoxAdapter(child: _DragHandle()),
-                    if (widget.actions.isNotEmpty)
-                      SliverToBoxAdapter(
-                        child: Column(
-                          children: [
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: widget.actions),
-                            ),
-                            const Divider(indent: 16, endIndent: 16),
-                            const SizedBox(height: 16),
-                          ],
+        // The sheet surface extends below the screen edge so only the top corners read as rounded.
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: -48,
+              child: SolidSurface(radius: SolidTokens.radiusSheet, floating: true, child: SizedBox.expand()),
+            ),
+            Column(
+              children: [
+                Expanded(
+                  child: CustomScrollView(
+                    controller: scrollController,
+                    slivers: [
+                      const SliverToBoxAdapter(child: _DragHandle()),
+                      if (widget.actions.isNotEmpty)
+                        SliverToBoxAdapter(
+                          child: Column(
+                            children: [
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: widget.actions),
+                              ),
+                              const Divider(indent: 16, endIndent: 16),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
                         ),
-                      ),
-                    if (widget.slivers != null) ...widget.slivers!,
-                  ],
+                      if (widget.slivers != null) ...widget.slivers!,
+                    ],
+                  ),
                 ),
-              ),
-              if (widget.footer != null) widget.footer!,
-            ],
-          ),
+                if (widget.footer != null) widget.footer!,
+              ],
+            ),
+          ],
         );
       },
     );
@@ -126,7 +132,7 @@ class _DragHandle extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(20)),
-              color: context.themeData.dividerColor.lighten(amount: 0.6),
+              color: context.solid.muted.withValues(alpha: 0.5),
             ),
           ),
         ),

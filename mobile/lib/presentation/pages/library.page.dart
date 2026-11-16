@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/data/store.dart';
 import 'package:immich_mobile/domain/models/user.model.dart';
-import 'package:immich_mobile/extensions/asyncvalue_extensions.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/generated/translations.g.dart';
-import 'package:immich_mobile/presentation/widgets/images/local_album_thumbnail.widget.dart';
+import 'package:immich_mobile/presentation/widgets/common/bottom_inset_sliver.dart';
+import 'package:immich_mobile/presentation/widgets/common/press_scale.dart';
 import 'package:immich_mobile/presentation/widgets/images/remote_image_provider.dart';
 import 'package:immich_mobile/presentation/widgets/images/thumbnail.widget.dart';
 import 'package:immich_mobile/presentation/widgets/people/partner_user_avatar.widget.dart';
@@ -16,6 +16,7 @@ import 'package:immich_mobile/providers/infrastructure/user.provider.dart';
 import 'package:immich_mobile/providers/server_info.provider.dart';
 import 'package:immich_mobile/providers/user.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:immich_mobile/utils/image_url_builder.dart';
 import 'package:immich_mobile/widgets/common/immich_sliver_app_bar.dart';
 import 'package:immich_mobile/widgets/map/map_thumbnail.dart';
@@ -27,381 +28,406 @@ class LibraryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
-          ImmichSliverAppBar(snap: false, floating: false, pinned: true, showUploadButton: false),
-          _ActionButtonGrid(),
-          _CollectionCards(),
-          _QuickAccessButtonList(),
+          ImmichSliverAppBar(
+            snap: false,
+            floating: false,
+            pinned: true,
+            showUploadButton: false,
+            largeTitle: context.t.library$,
+          ),
+          const _LibraryDashboard(),
+          const _QuickAccessButtonList(),
+          const BottomInsetSliver(extra: 16),
         ],
       ),
     );
   }
 }
 
-class _ActionButtonGrid extends ConsumerWidget {
-  const _ActionButtonGrid();
+@visibleForTesting
+/// Fixed palette for the dashboard badges, so every collection keeps its own identity.
+abstract final class LibraryHue {
+  static const favorites = Color(0xFFFF4D6D);
+  static const archive = Color(0xFFFFA62B);
+  static const links = Color(0xFF2EC4B6);
+  static const trash = Color(0xFF8D99AE);
+  static const people = Color(0xFF7C5CFF);
+  static const places = Color(0xFF34C759);
+  static const device = Color(0xFF3D8BFF);
+  static const memories = Color(0xFFFF7A59);
+}
+
+/// Bento grid of hero cards: one tall hero beside a stack of small cards,
+/// followed by wide cards with live previews.
+class _LibraryDashboard extends ConsumerWidget {
+  const _LibraryDashboard();
+
+  static const double gap = 12;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isTrashEnable = ref.watch(serverInfoProvider.select((state) => state.serverFeatures.trash));
+    final isTrashEnabled = ref.watch(serverInfoProvider.select((state) => state.serverFeatures.trash));
 
     return SliverPadding(
-      padding: const EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 12),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       sliver: SliverToBoxAdapter(
-        child: Column(
-          children: [
-            Row(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final unit = (constraints.maxWidth - gap) / 2;
+            final small = (unit - gap) / 2;
+            return Column(
               children: [
-                _ActionButton(
-                  icon: Icons.favorite_outline_rounded,
-                  onTap: () => context.pushRoute(const FavoriteRoute()),
-                  label: context.t.favorites,
+                SizedBox(
+                  height: unit,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: LibraryBentoCard(
+                          hue: LibraryHue.favorites,
+                          icon: Icons.favorite_rounded,
+                          title: context.t.favorites,
+                          hero: true,
+                          onTap: () => context.pushRoute(const FavoriteRoute()),
+                        ),
+                      ),
+                      const SizedBox(width: gap),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: LibraryBentoCard(
+                                hue: LibraryHue.archive,
+                                icon: Icons.inventory_2_rounded,
+                                title: context.t.archived,
+                                onTap: () => context.pushRoute(const ArchiveRoute()),
+                              ),
+                            ),
+                            const SizedBox(height: gap),
+                            Expanded(
+                              child: LibraryBentoCard(
+                                hue: LibraryHue.links,
+                                icon: Icons.link_rounded,
+                                title: context.t.shared_links,
+                                onTap: () => context.pushRoute(const SharedLinkRoute()),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 8),
-                _ActionButton(
-                  icon: Icons.archive_outlined,
-                  onTap: () => context.pushRoute(const ArchiveRoute()),
-                  label: context.t.archived,
+                const SizedBox(height: gap),
+                SizedBox(height: small + 8, child: const _PeopleWideCard()),
+                const SizedBox(height: gap),
+                SizedBox(
+                  height: unit * 0.82,
+                  child: const Row(
+                    children: [
+                      Expanded(child: _PlacesCard()),
+                      SizedBox(width: gap),
+                      Expanded(child: _DeviceCard()),
+                    ],
+                  ),
                 ),
+                const SizedBox(height: gap),
+                SizedBox(height: small + 8, child: const _MemoriesWideCard()),
+                if (isTrashEnabled) ...[
+                  const SizedBox(height: gap),
+                  SizedBox(
+                    height: 64,
+                    child: LibraryBentoCard(
+                      hue: LibraryHue.trash,
+                      icon: Icons.delete_rounded,
+                      title: context.t.trash,
+                      compact: true,
+                      onTap: () => context.pushRoute(const TrashRoute()),
+                    ),
+                  ),
+                ],
               ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                _ActionButton(
-                  icon: Icons.link_outlined,
-                  onTap: () => context.pushRoute(const SharedLinkRoute()),
-                  label: context.t.shared_links,
-                ),
-                isTrashEnable ? const SizedBox(width: 8) : const SizedBox.shrink(),
-                isTrashEnable
-                    ? _ActionButton(
-                        icon: Icons.delete_outline_rounded,
-                        onTap: () => context.pushRoute(const TrashRoute()),
-                        label: context.t.trash,
-                      )
-                    : const SizedBox.shrink(),
-              ],
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({required this.icon, required this.onTap, required this.label});
+/// Card of the dashboard: a flat paper surface with a hairline border; only the icon carries color.
+@visibleForTesting
+class LibraryBentoCard extends StatelessWidget {
+  const LibraryBentoCard({
+    required this.hue,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.subtitle,
+    this.hero = false,
+    this.compact = false,
+    this.preview,
+  });
 
+  final Color hue;
   final IconData icon;
+  final String title;
+  final String? subtitle;
   final VoidCallback onTap;
-  final String label;
+  final bool hero;
+  final bool compact;
+  final Widget? preview;
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: FilledButton.icon(
-        onPressed: onTap,
-        label: Padding(
-          padding: const EdgeInsets.only(left: 4.0),
-          child: Text(label, style: TextStyle(color: context.colorScheme.onSurface, fontSize: 15)),
-        ),
-        style: FilledButton.styleFrom(
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          backgroundColor: context.colorScheme.surfaceContainerLow,
-          alignment: Alignment.centerLeft,
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(25)),
-            side: BorderSide(color: context.colorScheme.onSurface.withAlpha(10), width: 1),
+    final tokens = context.solid;
+    final textTheme = Theme.of(context).textTheme;
+    return PressScale(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SolidSurface(
+          floating: false,
+          radius: SolidTokens.radiusCard,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (hero)
+                Positioned(right: -22, bottom: -26, child: Icon(icon, size: 150, color: hue.withValues(alpha: 0.10))),
+              if (preview != null) Positioned.fill(child: preview!),
+              Padding(
+                padding: EdgeInsets.all(compact ? 14 : 16),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Short cards (the small ones beside the hero, the trash strip) lay out in a row.
+                    if (compact || constraints.maxHeight < 72) {
+                      return Row(
+                        children: [
+                          SolidIconBadge(icon: icon, color: hue, size: compact ? 36 : 32),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: textTheme.titleSmall?.copyWith(color: tokens.ink, height: 1.1),
+                            ),
+                          ),
+                          if (compact) Icon(Icons.chevron_right_rounded, color: tokens.mutedStrong),
+                        ],
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SolidIconBadge(icon: icon, color: hue, size: hero ? 44 : 36),
+                        const Spacer(),
+                        Text(
+                          title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: (hero ? textTheme.headlineSmall : textTheme.titleMedium)?.copyWith(
+                            color: tokens.ink,
+                            height: 1.1,
+                          ),
+                        ),
+                        if (subtitle != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(subtitle!, style: textTheme.bodySmall?.copyWith(color: tokens.mutedStrong)),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
-        icon: Icon(icon, color: context.primaryColor),
       ),
     );
   }
 }
 
-class _CollectionCards extends StatelessWidget {
-  const _CollectionCards();
+/// Overlapping round previews on the right edge of a wide card.
+@visibleForTesting
+class LibraryAvatarStack extends StatelessWidget {
+  const LibraryAvatarStack({required this.children});
+
+  final List<Widget> children;
+  static const double size = 52;
 
   @override
   Widget build(BuildContext context) {
-    return const SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      sliver: SliverToBoxAdapter(
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _PeopleCollectionCard(),
-            _PlacesCollectionCard(),
-            _LocalAlbumsCollectionCard(),
-            _MemoriesCollectionCard(),
-          ],
-        ),
+    final tokens = context.solid;
+    const overlap = size * 0.62;
+    return SizedBox(
+      width: size + overlap * (children.length - 1).clamp(0, 99),
+      height: size,
+      child: Stack(
+        children: [
+          for (var i = children.length - 1; i >= 0; i--)
+            Positioned(
+              left: overlap * i,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: tokens.canvas, width: 2.5),
+                ),
+                child: ClipOval(
+                  child: SizedBox.square(dimension: size - 5, child: children[i]),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
 }
 
-class _PeopleCollectionCard extends ConsumerWidget {
-  const _PeopleCollectionCard();
+class _PeopleWideCard extends ConsumerWidget {
+  const _PeopleWideCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final people = ref.watch(Store.people.all());
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isTablet = constraints.maxWidth > 600;
-        final widthFactor = isTablet ? 0.25 : 0.5;
-        final size = context.width * widthFactor - 20.0;
-
-        return GestureDetector(
-          onTap: () => context.pushRoute(const PeopleCollectionRoute()),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: size,
-                width: size,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(Radius.circular(20)),
-                  gradient: LinearGradient(
-                    colors: [context.colorScheme.primary.withAlpha(30), context.colorScheme.primary.withAlpha(25)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+    final list = people.valueOrNull ?? const [];
+    return LibraryWideCard(
+      hue: LibraryHue.people,
+      icon: Icons.face_retouching_natural_rounded,
+      title: context.t.people,
+      onTap: () => context.pushRoute(const PeopleCollectionRoute()),
+      trailing: list.isEmpty
+          ? null
+          : LibraryAvatarStack(
+              children: [
+                for (final person in list.take(4))
+                  Image(
+                    image: RemoteImageProvider(url: getFaceThumbnailUrl(person.id, updatedAt: person.updatedAt)),
+                    fit: BoxFit.cover,
                   ),
-                ),
-                child: people.widgetWhen(
-                  onLoading: () => const Center(child: CircularProgressIndicator()),
-                  onData: (people) {
-                    return GridView.count(
-                      crossAxisCount: 2,
-                      padding: const EdgeInsets.all(12),
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: people.take(4).map((person) {
-                        return CircleAvatar(
-                          backgroundImage: RemoteImageProvider(
-                            url: getFaceThumbnailUrl(person.id, updatedAt: person.updatedAt),
-                          ),
-                        );
-                      }).toList(),
-                    );
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  context.t.people,
-                  style: context.textTheme.titleSmall?.copyWith(
-                    color: context.colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+              ],
+            ),
     );
   }
 }
 
-class _PlacesCollectionCard extends StatelessWidget {
-  const _PlacesCollectionCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isTablet = constraints.maxWidth > 600;
-        final widthFactor = isTablet ? 0.25 : 0.5;
-        final size = context.width * widthFactor - 20.0;
-
-        return GestureDetector(
-          onTap: () => context.pushRoute(PlaceRoute(currentLocation: null)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: size,
-                width: size,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(20)),
-                    color: context.colorScheme.secondaryContainer.withAlpha(100),
-                  ),
-                  child: IgnorePointer(
-                    child: MapThumbnail(
-                      zoom: 8,
-                      centre: const LatLng(21.44950, -157.91959),
-                      showAttribution: false,
-                      themeMode: context.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  context.t.places,
-                  style: context.textTheme.titleSmall?.copyWith(
-                    color: context.colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _LocalAlbumsCollectionCard extends ConsumerWidget {
-  const _LocalAlbumsCollectionCard();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final albums = ref.watch(localAlbumProvider);
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isTablet = constraints.maxWidth > 600;
-        final widthFactor = isTablet ? 0.25 : 0.5;
-        final size = context.width * widthFactor - 20.0;
-
-        return GestureDetector(
-          onTap: () => context.pushRoute(const LocalAlbumsRoute()),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: size,
-                width: size,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(20)),
-                    gradient: LinearGradient(
-                      colors: [context.colorScheme.primary.withAlpha(30), context.colorScheme.primary.withAlpha(25)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    padding: const EdgeInsets.all(12),
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: albums.when(
-                      data: (data) {
-                        return data.take(4).map((album) {
-                          return LocalAlbumThumbnail(albumId: album.id);
-                        }).toList();
-                      },
-                      error: (error, _) {
-                        return [Center(child: Text(context.t.error_saving_image(error: error.toString())))];
-                      },
-                      loading: () {
-                        return [const Center(child: CircularProgressIndicator())];
-                      },
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  context.t.on_this_device,
-                  style: context.textTheme.titleSmall?.copyWith(
-                    color: context.colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _MemoriesCollectionCard extends ConsumerWidget {
-  const _MemoriesCollectionCard();
+class _MemoriesWideCard extends ConsumerWidget {
+  const _MemoriesWideCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final memories = ref.watch(allMemoriesProvider(false));
+    final list = memories.valueOrNull ?? const [];
+    return LibraryWideCard(
+      hue: LibraryHue.memories,
+      icon: Icons.auto_awesome_rounded,
+      title: context.t.memories,
+      onTap: () => context.pushRoute(const MemoryListRoute()),
+      trailing: list.isEmpty
+          ? null
+          : LibraryAvatarStack(
+              children: [
+                for (final memory in list.take(4))
+                  Thumbnail.remote(
+                    remoteId: memory.assets[0].id,
+                    thumbhash: memory.assets[0].thumbHash ?? "",
+                    fit: BoxFit.cover,
+                  ),
+              ],
+            ),
+    );
+  }
+}
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isTablet = constraints.maxWidth > 600;
-        final widthFactor = isTablet ? 0.25 : 0.5;
-        final size = context.width * widthFactor - 20.0;
+@visibleForTesting
+class LibraryWideCard extends StatelessWidget {
+  const LibraryWideCard({
+    required this.hue,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.trailing,
+  });
 
-        return GestureDetector(
-          onTap: () => context.pushRoute(const MemoryListRoute()),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  final Color hue;
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.solid;
+    return PressScale(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SolidSurface(
+          floating: false,
+          radius: SolidTokens.radiusCard,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Row(
             children: [
-              Container(
-                height: size,
-                width: size,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(Radius.circular(20)),
-                  gradient: LinearGradient(
-                    colors: [context.colorScheme.primary.withAlpha(30), context.colorScheme.primary.withAlpha(25)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-                child: memories.widgetWhen(
-                  onLoading: () => const Center(child: CircularProgressIndicator()),
-                  onData: (memories) {
-                    return GridView.count(
-                      crossAxisCount: 2,
-                      padding: const EdgeInsets.all(12),
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: memories.take(4).map((memory) {
-                        return ClipRRect(
-                          borderRadius: const BorderRadius.all(Radius.circular(10)),
-                          child: Thumbnail.remote(
-                            remoteId: memory.assets[0].id,
-                            thumbhash: memory.assets[0].thumbHash ?? "",
-                            fit: BoxFit.cover,
-                          ),
-                        );
-                      }).toList(),
-                    );
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
+              SolidIconBadge(icon: icon, color: hue, size: 40),
+              const SizedBox(width: 14),
+              Expanded(
                 child: Text(
-                  context.t.memories,
-                  style: context.textTheme.titleSmall?.copyWith(
-                    color: context.colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: tokens.ink),
                 ),
               ),
+              ?trailing,
             ],
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+}
+
+class _PlacesCard extends StatelessWidget {
+  const _PlacesCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return LibraryBentoCard(
+      hue: LibraryHue.places,
+      icon: Icons.place_rounded,
+      title: context.t.places,
+      onTap: () => context.pushRoute(PlaceRoute(currentLocation: null)),
+      preview: Opacity(
+        opacity: 0.55,
+        child: IgnorePointer(
+          child: MapThumbnail(
+            zoom: 8,
+            centre: const LatLng(21.44950, -157.91959),
+            showAttribution: false,
+            themeMode: context.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DeviceCard extends ConsumerWidget {
+  const _DeviceCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final albums = ref.watch(localAlbumProvider).valueOrNull ?? const [];
+    return LibraryBentoCard(
+      hue: LibraryHue.device,
+      icon: Icons.smartphone_rounded,
+      title: context.t.on_this_device,
+      subtitle: albums.isEmpty ? null : '${albums.length}',
+      onTap: () => context.pushRoute(const LocalAlbumsRoute()),
     );
   }
 }
@@ -417,93 +443,42 @@ final sharedWithPartnerProvider = StreamProvider.autoDispose<Iterable<Partner>>(
   return ref.watch(partnerServiceProvider).search(currentUser.id, .sharedWith);
 });
 
-class _QuickAccessItem {
-  final Widget leading;
-  final String title;
-  final VoidCallback onTap;
-  final EdgeInsetsGeometry? contentPadding;
-
-  const _QuickAccessItem({required this.leading, required this.title, required this.onTap, this.contentPadding});
-}
-
 class _QuickAccessButtonList extends ConsumerWidget {
   const _QuickAccessButtonList();
 
-  static const _tileRadius = 20.0;
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final partnerSharedWithAsync = ref.watch(sharedWithPartnerProvider);
-    final partners = partnerSharedWithAsync.valueOrNull ?? [];
+    final partners = ref.watch(sharedWithPartnerProvider).valueOrNull ?? [];
 
-    final items = [
-      _QuickAccessItem(
-        leading: const Icon(Icons.folder_outlined, size: 26),
-        title: context.t.folders,
-        onTap: () => context.pushRoute(FolderRoute()),
-      ),
-      _QuickAccessItem(
-        leading: const Icon(Icons.lock_outline_rounded, size: 26),
-        title: context.t.locked_folder,
-        onTap: () => context.pushRoute(const LockedFolderRoute()),
-      ),
-      _QuickAccessItem(
-        leading: const Icon(Icons.group_outlined, size: 26),
-        title: context.t.partners,
-        onTap: () => context.pushRoute(const PartnerRoute()),
-      ),
-      for (final partner in partners)
-        _QuickAccessItem(
-          contentPadding: const EdgeInsets.only(left: 12.0, right: 18.0),
-          leading: PartnerUserAvatar(userId: partner.id, name: partner.name),
-          title: context.t.partner_list_user_photos(user: partner.name),
-          onTap: () => context.pushRoute(PartnerDetailRoute(partner: partner)),
-        ),
-    ];
-
-    return SliverPadding(
-      padding: const EdgeInsets.only(left: 16, top: 12, right: 16, bottom: 32),
-      sliver: SliverToBoxAdapter(
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border.all(color: context.colorScheme.onSurface.withAlpha(10), width: 1),
-            borderRadius: const BorderRadius.all(Radius.circular(_tileRadius)),
-            gradient: LinearGradient(
-              colors: [
-                context.colorScheme.primary.withAlpha(10),
-                context.colorScheme.primary.withAlpha(15),
-                context.colorScheme.primary.withAlpha(20),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+    return SliverToBoxAdapter(
+      child: SolidGroup(
+        margin: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+        children: [
+          SolidGroupTile(
+            icon: Icons.folder_rounded,
+            iconColor: const Color(0xFF5E9BFF),
+            title: context.t.folders,
+            onTap: () => context.pushRoute(FolderRoute()),
+          ),
+          SolidGroupTile(
+            icon: Icons.lock_rounded,
+            iconColor: const Color(0xFF8E8E93),
+            title: context.t.locked_folder,
+            onTap: () => context.pushRoute(const LockedFolderRoute()),
+          ),
+          SolidGroupTile(
+            icon: Icons.group_rounded,
+            iconColor: const Color(0xFF30B0C7),
+            title: context.t.partners,
+            onTap: () => context.pushRoute(const PartnerRoute()),
+          ),
+          for (final partner in partners)
+            SolidGroupTile(
+              leading: PartnerUserAvatar(userId: partner.id, name: partner.name),
+              title: context.t.partner_list_user_photos(user: partner.name),
+              onTap: () => context.pushRoute(PartnerDetailRoute(partner: partner)),
             ),
-          ),
-          child: ListView.builder(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              final isFirst = index == 0;
-              final isLast = index == items.length - 1;
-              return ListTile(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(isFirst ? _tileRadius : 0),
-                    topRight: Radius.circular(isFirst ? _tileRadius : 0),
-                    bottomLeft: Radius.circular(isLast ? _tileRadius : 0),
-                    bottomRight: Radius.circular(isLast ? _tileRadius : 0),
-                  ),
-                ),
-                contentPadding: item.contentPadding,
-                leading: item.leading,
-                title: Text(item.title, style: context.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500)),
-                onTap: item.onTap,
-              );
-            },
-          ),
-        ),
+        ],
       ),
     );
   }

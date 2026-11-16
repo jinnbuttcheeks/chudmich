@@ -38,11 +38,15 @@ android {
 
   defaultConfig {
     applicationId "app.alextran.immich"
+    // Installs alongside the official Immich app.
+    applicationIdSuffix ".jinn"
     minSdk = 26
     targetSdk = flutter.targetSdkVersion
-    versionCode flutter.versionCode
-    versionName flutter.versionName
-    resValue "string", "app_name", "Immich"
+    // The semantic version (3.4.1) must stay intact: the app compares it with the server version.
+    // chudmich.4: pubspec build number (3040199) + 4 = 3040203. Bump the offset with every Chudmich release.
+    versionCode flutter.versionCode + 4
+    versionName "${flutter.versionName}-chudmich.4"
+    resValue "string", "app_name", "Chudmich"
     buildConfigField "boolean", "PASSKEYS", "true"
   }
 
@@ -79,6 +83,44 @@ android {
     }
   }
   namespace 'app.alextran.immich'
+}
+
+// Release signing must never silently degrade. When a keystore is present (CI decodes
+// PREMIUM_KEYSTORE_B64 into android/key.jks) the credentials have to exist and open it,
+// otherwise the build fails here instead of producing a debug-signed or unsigned APK.
+// Without a keystore the debug fallback above stays, for local builds.
+gradle.taskGraph.whenReady { graph ->
+  def releaseRequested = graph.allTasks.any { it.project == project && it.name.toLowerCase().contains('release') && (it.name.startsWith('assemble') || it.name.startsWith('package') || it.name.startsWith('bundle') || it.name.startsWith('validateSigning')) }
+  def keystoreFile = file("../key.jks")
+  if (!releaseRequested || !keystoreFile.exists() || keystoreFile.length() == 0) {
+    return
+  }
+
+  def alias = System.getenv("ALIAS") ?: keystoreProperties['keyAlias']
+  def keyPassword = System.getenv("ANDROID_KEY_PASSWORD") ?: keystoreProperties['keyPassword']
+  def storePassword = System.getenv("ANDROID_STORE_PASSWORD") ?: keystoreProperties['storePassword']
+  if (!alias || !keyPassword || !storePassword) {
+    throw new GradleException("android/key.jks is present but ALIAS, ANDROID_KEY_PASSWORD or ANDROID_STORE_PASSWORD is not set. Refusing to build a release APK without the release signing key.")
+  }
+
+  def store = java.security.KeyStore.getInstance("PKCS12")
+  try {
+    keystoreFile.withInputStream { store.load(it, storePassword.toCharArray()) }
+  } catch (Exception e) {
+    throw new GradleException("Could not open android/key.jks with the provided store password (${e.class.simpleName}). Refusing to fall back to debug signing.")
+  }
+  if (!store.containsAlias(alias)) {
+    throw new GradleException("android/key.jks does not contain the key alias given in ALIAS. Refusing to fall back to debug signing.")
+  }
+  try {
+    if (store.getKey(alias, keyPassword.toCharArray()) == null) {
+      throw new GradleException("android/key.jks alias has no private key.")
+    }
+  } catch (GradleException e) {
+    throw e
+  } catch (Exception e) {
+    throw new GradleException("Could not read the signing key from android/key.jks with the provided key password (${e.class.simpleName}). Refusing to fall back to debug signing.")
+  }
 }
 
 flutter {

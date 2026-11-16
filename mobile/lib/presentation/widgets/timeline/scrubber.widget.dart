@@ -8,11 +8,11 @@ import 'package:immich_mobile/constants/constants.dart';
 import 'package:immich_mobile/domain/models/timeline.model.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/extensions/datetime_extensions.dart';
-import 'package:immich_mobile/extensions/theme_extensions.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/constants.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/segment.model.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/timeline.state.dart';
 import 'package:immich_mobile/providers/haptic_feedback.provider.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 part 'scrubber.widget.freezed.dart';
@@ -340,7 +340,7 @@ class ScrubberState extends ConsumerState<Scrubber> with TickerProviderStateMixi
       label = labelText != null
           ? Text(
               labelText,
-              style: ctx.textTheme.bodyLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+              style: ctx.textTheme.titleMedium?.copyWith(color: ctx.solid.ink, fontWeight: FontWeight.w700),
             )
           : null;
     }
@@ -413,19 +413,20 @@ class _SegmentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.solid;
     return IgnorePointer(
-      child: Container(
-        margin: const EdgeInsets.only(right: 36.0),
-        child: Material(
-          color: context.colorScheme.surface,
-          borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-          child: Container(
-            constraints: const BoxConstraints(maxHeight: 28),
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            alignment: Alignment.center,
-            child: Text(
-              _segment.date.year.toString(),
-              style: context.textTheme.labelMedium?.copyWith(fontFamily: "GoogleSansCode", fontWeight: FontWeight.w600),
+      child: Padding(
+        padding: const EdgeInsets.only(right: 40.0),
+        child: SolidSurface(
+          floating: false,
+          radius: 14,
+          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4),
+          child: Text(
+            _segment.date.year.toString(),
+            style: context.textTheme.labelMedium?.copyWith(
+              fontFamily: "GoogleSansCode",
+              fontWeight: FontWeight.w600,
+              color: tokens.ink,
             ),
           ),
         ),
@@ -436,26 +437,23 @@ class _SegmentWidget extends StatelessWidget {
 
 class _ScrollLabel extends StatelessWidget {
   final Text label;
-  final Color backgroundColor;
   final Animation<double> animation;
 
-  const _ScrollLabel({required this.label, required this.backgroundColor, required this.animation});
+  const _ScrollLabel({required this.label, required this.animation});
 
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: FadeTransition(
         opacity: animation,
-        child: Container(
-          margin: const EdgeInsets.only(right: 12.0),
-          child: Material(
-            elevation: 4.0,
-            color: backgroundColor,
-            borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-            child: Container(
-              constraints: const BoxConstraints(maxHeight: 28),
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              alignment: Alignment.center,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.92, end: 1).animate(animation),
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: SolidSurface(
+              radius: SolidTokens.radiusPill,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
               child: label,
             ),
           ),
@@ -474,75 +472,91 @@ class _Scrubber extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = context.isDarkTheme
-        ? context.colorScheme.primary.darken(amount: .5)
-        : context.colorScheme.primary;
-
     return _SlideFadeTransition(
       animation: thumbAnimation,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          if (label != null) _ScrollLabel(label: label!, backgroundColor: backgroundColor, animation: labelAnimation),
-          _CircularThumb(backgroundColor),
+          if (label != null) _ScrollLabel(label: label!, animation: labelAnimation),
+          const ScrubberHandle(),
         ],
       ),
     );
   }
 }
 
-class _CircularThumb extends StatelessWidget {
-  final Color backgroundColor;
-
-  const _CircularThumb(this.backgroundColor);
+/// The round solid thumb with its arrows.
+@visibleForTesting
+class ScrubberHandle extends StatelessWidget {
+  const ScrubberHandle({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      foregroundPainter: const _ArrowPainter(Colors.white),
-      child: Material(
-        elevation: 4.0,
-        color: backgroundColor,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(kScrubberThumbHeight),
-          bottomLeft: Radius.circular(kScrubberThumbHeight),
-          topRight: Radius.circular(4.0),
-          bottomRight: Radius.circular(4.0),
-        ),
-        child: Container(
-          constraints: BoxConstraints.tight(const Size(kScrubberThumbHeight * 0.6, kScrubberThumbHeight)),
+    final tokens = context.solid;
+    return Padding(
+      padding: const EdgeInsets.only(right: 4.0),
+      child: CustomPaint(
+        key: ScrubberArrowPainter.paintKey,
+        foregroundPainter: ScrubberArrowPainter(tokens.ink),
+        child: const SolidSurface(
+          key: ScrubberArrowPainter.handleKey,
+          radius: 16,
+          child: SizedBox(width: 32, height: kScrubberThumbHeight),
         ),
       ),
     );
   }
 }
 
-class _ArrowPainter extends CustomPainter {
+/// Draws the up/down arrows of the scrubber handle. Pure geometry in [glyphs]
+/// so the centring can be tested; no text or font is involved, so text scale
+/// cannot move the arrows.
+class ScrubberArrowPainter extends CustomPainter {
   final Color color;
 
-  const _ArrowPainter(this.color);
+  const ScrubberArrowPainter(this.color);
+
+  @visibleForTesting
+  static const paintKey = ValueKey<String>('scrubber_arrows');
+
+  @visibleForTesting
+  static const handleKey = ValueKey<String>('scrubber_handle');
+
+  static const double glyphWidth = 12.0;
+  static const double glyphHeight = 8.0;
+
+  /// Gap between the two triangle bases is twice this value.
+  static const double glyphGap = 2.0;
+
+  /// Outlines of the up and down arrows for a handle of [size].
+  static List<Path> glyphs(Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    return [
+      _trianglePath(Offset(cx, cy - glyphGap), isUp: true),
+      _trianglePath(Offset(cx, cy + glyphGap), isUp: false),
+    ];
+  }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant ScrubberArrowPainter oldDelegate) => oldDelegate.color != color;
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = color;
-    const width = 12.0;
-    const height = 8.0;
-    final baseX = size.width / 2;
-    final baseY = size.height / 2;
-
-    canvas.drawPath(_trianglePath(Offset(baseX, baseY - 2.0), width, height, true), paint);
-    canvas.drawPath(_trianglePath(Offset(baseX, baseY + 2.0), width, height, false), paint);
+    for (final glyph in glyphs(size)) {
+      canvas.drawPath(glyph, paint);
+    }
   }
 
-  static Path _trianglePath(Offset o, double width, double height, bool isUp) {
+  /// Triangle with its base centred on [baseCentre], pointing up or down.
+  static Path _trianglePath(Offset baseCentre, {required bool isUp}) {
+    final left = baseCentre.dx - glyphWidth / 2;
     return Path()
-      ..moveTo(o.dx, o.dy)
-      ..lineTo(o.dx + width, o.dy)
-      ..lineTo(o.dx + (width / 2), isUp ? o.dy - height : o.dy + height)
+      ..moveTo(left, baseCentre.dy)
+      ..lineTo(left + glyphWidth, baseCentre.dy)
+      ..lineTo(baseCentre.dx, isUp ? baseCentre.dy - glyphHeight : baseCentre.dy + glyphHeight)
       ..close();
   }
 }

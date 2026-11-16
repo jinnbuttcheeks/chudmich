@@ -13,6 +13,7 @@ import 'package:immich_mobile/presentation/widgets/asset_viewer/asset_details/ra
 import 'package:immich_mobile/presentation/widgets/asset_viewer/asset_details/tag_details.widget.dart';
 import 'package:immich_mobile/presentation/widgets/asset_viewer/asset_details/technical_details.widget.dart';
 import 'package:immich_mobile/providers/infrastructure/asset_viewer/asset.provider.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 
 class AssetDetails extends ConsumerWidget {
   final BaseAsset asset;
@@ -24,37 +25,28 @@ class AssetDetails extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final exifInfo = ref.watch(assetExifProvider(asset)).valueOrNull;
 
-    return Container(
+    return ConstrainedBox(
       constraints: BoxConstraints(minHeight: minHeight),
-      decoration: BoxDecoration(
-        color: context.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            offset: const Offset(0, -3),
-            blurRadius: 10,
-            spreadRadius: 2,
+      child: SolidSurface(
+        radius: SolidTokens.radiusSheet,
+        child: SafeArea(
+          top: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const DragHandle(),
+              DateTimeDetails(asset: asset, exifInfo: exifInfo),
+              AssetOwnerDetails(asset: asset),
+              SheetAssetDescription(asset: asset, exifInfo: exifInfo),
+              PeopleDetails(asset: asset),
+              LocationDetails(asset: asset, exifInfo: exifInfo),
+              TechnicalDetails(asset: asset, exifInfo: exifInfo),
+              RatingDetails(exifInfo: exifInfo),
+              AppearsInDetails(asset: asset),
+              TagDetails(asset: asset),
+              SizedBox(height: context.padding.bottom + 48),
+            ],
           ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const DragHandle(),
-            DateTimeDetails(asset: asset, exifInfo: exifInfo),
-            AssetOwnerDetails(asset: asset),
-            SheetAssetDescription(asset: asset, exifInfo: exifInfo),
-            PeopleDetails(asset: asset),
-            LocationDetails(asset: asset, exifInfo: exifInfo),
-            TechnicalDetails(asset: asset, exifInfo: exifInfo),
-            RatingDetails(exifInfo: exifInfo),
-            AppearsInDetails(asset: asset),
-            TagDetails(asset: asset),
-            SizedBox(height: context.padding.bottom + 48),
-          ],
         ),
       ),
     );

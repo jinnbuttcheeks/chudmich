@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:immich_mobile/extensions/build_context_extensions.dart';
-import 'package:immich_mobile/extensions/theme_extensions.dart';
+import 'package:immich_mobile/theme/premium_tokens.dart';
 
 class ThumbnailPlaceholder extends StatelessWidget {
   final EdgeInsets margin;
@@ -11,10 +10,8 @@ class ThumbnailPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gradientColors = [
-      context.colorScheme.surfaceContainer,
-      context.colorScheme.surfaceContainer.darken(amount: .1),
-    ];
+    final tokens = context.premium;
+    final gradientColors = [tokens.skeletonHighlight, tokens.skeletonBase];
 
     return Container(
       width: width,

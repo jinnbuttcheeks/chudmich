@@ -7,6 +7,7 @@ import 'package:immich_mobile/generated/translations.g.dart';
 import 'package:immich_mobile/pages/common/large_leading_tile.dart';
 import 'package:immich_mobile/presentation/widgets/images/thumbnail.widget.dart';
 import 'package:immich_mobile/providers/infrastructure/asset.provider.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 
 class AlbumTile extends ConsumerWidget {
   const AlbumTile({super.key, required this.album, required this.isOwner, this.onAlbumSelected});
@@ -19,48 +20,53 @@ class AlbumTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final albumThumbnailAsset = ref.watch(assetServiceProvider).getRemoteAsset(album.thumbnailAssetId ?? "");
 
-    return LargeLeadingTile(
-      title: Text(
-        album.name,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: context.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        '${context.t.items_count(count: album.assetCount)} • ${isOwner ? context.t.owned : context.t.shared_by_user(user: album.ownerName)}',
-        overflow: TextOverflow.ellipsis,
-        style: context.textTheme.bodyMedium?.copyWith(color: context.colorScheme.onSurfaceSecondary),
-      ),
-      onTap: () => onAlbumSelected?.call(album),
-      leadingPadding: const EdgeInsets.only(right: 16),
-      leading: FutureBuilder(
-        future: albumThumbnailAsset,
-        builder: (context, snapshot) {
-          return snapshot.hasData && snapshot.data != null
-              ? ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(15)),
-                  child: SizedBox(
+    return SolidSurface(
+      floating: false,
+      radius: SolidTokens.radiusCard,
+      padding: const EdgeInsets.all(4),
+      child: LargeLeadingTile(
+        title: Text(
+          album.name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: context.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          '${context.t.items_count(count: album.assetCount)} • ${isOwner ? context.t.owned : context.t.shared_by_user(user: album.ownerName)}',
+          overflow: TextOverflow.ellipsis,
+          style: context.textTheme.bodyMedium?.copyWith(color: context.colorScheme.onSurfaceSecondary),
+        ),
+        onTap: () => onAlbumSelected?.call(album),
+        leadingPadding: const EdgeInsets.only(right: 16),
+        leading: FutureBuilder(
+          future: albumThumbnailAsset,
+          builder: (context, snapshot) {
+            return snapshot.hasData && snapshot.data != null
+                ? ClipRSuperellipse(
+                    borderRadius: const BorderRadius.all(Radius.circular(20)),
+                    child: SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: Thumbnail.remote(
+                        remoteId: album.thumbnailAssetId!,
+                        thumbhash: snapshot.data!.thumbHash ?? "",
+                      ),
+                    ),
+                  )
+                : SizedBox(
                     width: 80,
                     height: 80,
-                    child: Thumbnail.remote(
-                      remoteId: album.thumbnailAssetId!,
-                      thumbhash: snapshot.data!.thumbHash ?? "",
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.surfaceContainer,
+                        borderRadius: const BorderRadius.all(Radius.circular(20)),
+                        border: Border.all(color: context.colorScheme.outline.withAlpha(50), width: 1),
+                      ),
+                      child: const Icon(Icons.photo_album_rounded, size: 24, color: Colors.grey),
                     ),
-                  ),
-                )
-              : SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: context.colorScheme.surfaceContainer,
-                      borderRadius: const BorderRadius.all(Radius.circular(16)),
-                      border: Border.all(color: context.colorScheme.outline.withAlpha(50), width: 1),
-                    ),
-                    child: const Icon(Icons.photo_album_rounded, size: 24, color: Colors.grey),
-                  ),
-                );
-        },
+                  );
+          },
+        ),
       ),
     );
   }
