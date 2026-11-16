@@ -60,60 +60,6 @@ class SolidIconButton extends StatelessWidget {
   }
 }
 
-/// Button with an optional leading icon. [prominent] is the primary action: accent fill at about 70%
-/// with a lighter accent border and white text.
-class SolidButton extends StatelessWidget {
-  const SolidButton({
-    super.key,
-    required this.label,
-    required this.onPressed,
-    this.icon,
-    this.prominent = false,
-    this.expand = false,
-  });
-
-  final String label;
-  final IconData? icon;
-  final VoidCallback? onPressed;
-  final bool prominent;
-  final bool expand;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.solid;
-    final fg = prominent ? Colors.white : tokens.ink;
-    final text = Theme.of(context).textTheme.labelLarge?.copyWith(color: fg, fontWeight: FontWeight.w600, fontSize: 15);
-    final surface = prominent
-        ? DecoratedBox(
-            decoration: BoxDecoration(
-              color: tokens.accentFill,
-              borderRadius: BorderRadius.circular(SolidTokens.radius),
-              border: Border.all(color: tokens.accentBorder),
-            ),
-            child: _content(fg, text),
-          )
-        : SolidSurface(radius: SolidTokens.radius, color: tokens.panel, child: _content(fg, text));
-    return PressScale(
-      enabled: onPressed != null,
-      child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: onPressed, child: surface),
-    );
-  }
-
-  Widget _content(Color fg, TextStyle? text) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
-    child: Row(
-      mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (icon != null) ...[Icon(icon, size: 20, color: fg), const SizedBox(width: 8)],
-        Flexible(
-          child: Text(label, style: text, maxLines: 1, overflow: TextOverflow.ellipsis),
-        ),
-      ],
-    ),
-  );
-}
-
 /// Selectable pill chip. Selected is the white pill with dark text of the AIOStreams pill tabs; the
 /// others sit on the deep panel.
 class SolidChip extends StatelessWidget {
@@ -321,6 +267,7 @@ class _SolidRevealState extends State<SolidReveal> with SingleTickerProviderStat
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: SolidTokens.duration,
+    reverseDuration: SolidTokens.durationFast,
     value: widget.visible ? 1 : 0,
   );
   late final CurvedAnimation _curve = CurvedAnimation(parent: _controller, curve: SolidTokens.curve);

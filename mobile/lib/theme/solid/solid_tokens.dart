@@ -62,20 +62,15 @@ class SolidTokens extends ThemeExtension<SolidTokens> {
   static const double radiusSheet = 20;
   static const double radiusPill = 999;
 
-  // Motion (AIOStreams: 200 ms ease-out slides, 100 ms fade-outs, emphasized decelerate for shared elements).
+  // Motion (AIOStreams: 200 ms ease-out slides, 100 ms fade-outs).
   static const Duration durationFast = Duration(milliseconds: 100);
   static const Duration duration = Duration(milliseconds: 200);
-  static const Duration durationEmphasized = Duration(milliseconds: 450);
   static const Curve curve = Curves.easeOut;
-  static const Curve curveEmphasized = Cubic(0.05, 0.7, 0.1, 1);
 
   /// `0 12px 32px -12px rgb(0 0 0 / 0.7)`: floating bars, sheets and toasts.
   static const List<BoxShadow> floatingShadow = [
     BoxShadow(color: Color(0xB3000000), offset: Offset(0, 12), blurRadius: 32, spreadRadius: -12),
   ];
-
-  /// Tailwind `shadow-sm`, for cards.
-  static const List<BoxShadow> cardShadow = [BoxShadow(color: Color(0x0D000000), offset: Offset(0, 1), blurRadius: 2)];
 
   final Brightness brightness;
 

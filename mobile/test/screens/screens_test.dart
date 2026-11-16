@@ -847,15 +847,7 @@ void main() {
                   ),
                   const SizedBox(height: 18),
                 ],
-                Row(
-                  children: [
-                    SolidButton(label: 'Share', icon: Icons.ios_share_rounded, onPressed: () {}),
-                    const SizedBox(width: 12),
-                    SolidButton(label: 'Backup', prominent: true, onPressed: () {}),
-                    const SizedBox(width: 12),
-                    const SolidIconButton(icon: Icons.favorite_rounded, onPressed: null),
-                  ],
-                ),
+                const Row(children: [SolidIconButton(icon: Icons.favorite_rounded, onPressed: null)]),
                 const SizedBox(height: 18),
                 Row(
                   children: [
