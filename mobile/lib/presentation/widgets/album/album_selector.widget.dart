@@ -20,7 +20,7 @@ import 'package:immich_mobile/providers/infrastructure/settings.provider.dart';
 import 'package:immich_mobile/providers/timeline/multiselect.provider.dart';
 import 'package:immich_mobile/providers/user.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:immich_mobile/utils/album_filter.utils.dart';
 import 'package:immich_mobile/widgets/common/confirm_dialog.dart';
 import 'package:immich_mobile/widgets/common/immich_toast.dart';
@@ -286,12 +286,12 @@ class _SortButtonState extends ConsumerState<_SortButton> {
       controller: widget.controller,
       style: MenuStyle(
         elevation: const WidgetStatePropertyAll(0),
-        backgroundColor: WidgetStatePropertyAll(context.glass.tint.withValues(alpha: 0.94)),
+        backgroundColor: WidgetStatePropertyAll(context.solid.paper.withValues(alpha: 0.94)),
         surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
         shape: WidgetStateProperty.all(
           RoundedSuperellipseBorder(
             borderRadius: BorderRadius.circular(24),
-            side: BorderSide(color: context.glass.highlight.withValues(alpha: 0.2), width: 0.8),
+            side: BorderSide(color: context.solid.border.withValues(alpha: 0.2), width: 0.8),
           ),
         ),
         padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
@@ -474,7 +474,7 @@ class _QuickFilterButton extends StatelessWidget {
   final String label;
 
   @override
-  Widget build(BuildContext context) => GlassChip(label: label, selected: isSelected, onTap: onTap);
+  Widget build(BuildContext context) => SolidChip(label: label, selected: isSelected, onTap: onTap);
 }
 
 class _QuickSortAndViewMode extends StatelessWidget {
@@ -508,11 +508,10 @@ class _QuickSortAndViewMode extends StatelessWidget {
               initialSortMode: currentSortMode,
               initialIsReverse: currentIsReverse,
             ),
-            GlassIconButton(
+            SolidIconButton(
               icon: isGrid ? Icons.view_agenda_rounded : Icons.grid_view_rounded,
               size: 40,
               iconSize: 20,
-              blur: false,
               tooltip: isGrid ? 'List' : 'Grid',
               onPressed: onToggleViewMode,
             ),
@@ -625,7 +624,7 @@ class _AlbumGrid extends StatelessWidget {
 }
 
 /// Album cover that fills the card, with a frosted caption laid over its lower edge.
-/// Fake glass (no backdrop filter): these cards live in a scrolling grid.
+/// Album cover card: flat surface, cheap enough for a scrolling grid.
 class _GridAlbumCard extends ConsumerWidget {
   const _GridAlbumCard({required this.album, required this.userId, required this.onAlbumSelected});
 
@@ -635,7 +634,7 @@ class _GridAlbumCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokens = context.glass;
+    final tokens = context.solid;
     final albumThumbnailAsset = ref.watch(assetServiceProvider).getRemoteAsset(album.thumbnailAssetId ?? "");
 
     return PressScale(
@@ -657,7 +656,7 @@ class _GridAlbumCard extends ConsumerWidget {
                   }
                   return ColoredBox(
                     color: context.colorScheme.surfaceContainerHighest,
-                    child: Icon(Icons.photo_album_rounded, size: 44, color: tokens.inkSecondary),
+                    child: Icon(Icons.photo_album_rounded, size: 44, color: tokens.mutedStrong),
                   );
                 },
               ),
@@ -665,10 +664,8 @@ class _GridAlbumCard extends ConsumerWidget {
                 left: 8,
                 right: 8,
                 bottom: 8,
-                child: GlassSurface(
-                  blur: false,
-                  shadow: false,
-                  variant: GlassVariant.thick,
+                child: SolidSurface(
+                  floating: false,
                   radius: 20,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                   child: Column(
@@ -686,7 +683,7 @@ class _GridAlbumCard extends ConsumerWidget {
                         '${context.t.items_count(count: album.assetCount)} • ${album.ownerId != userId ? context.t.shared_by_user(user: album.ownerName) : context.t.owned}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: context.textTheme.labelMedium?.copyWith(color: tokens.inkSecondary),
+                        style: context.textTheme.labelMedium?.copyWith(color: tokens.mutedStrong),
                       ),
                     ],
                   ),

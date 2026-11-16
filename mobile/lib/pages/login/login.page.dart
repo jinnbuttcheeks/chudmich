@@ -6,7 +6,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/extensions/theme_extensions.dart';
 import 'package:immich_mobile/routing/router.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
 import 'package:immich_mobile/widgets/forms/login/login_form.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -28,42 +27,40 @@ class LoginPage extends HookWidget {
       return null;
     });
 
-    return AmbientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: LoginForm(),
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: SizedBox(
-              height: 50,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'v${appVersion.value}',
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: LoginForm(),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: SizedBox(
+            height: 50,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'v${appVersion.value}',
+                  style: TextStyle(
+                    color: context.colorScheme.onSurfaceSecondary,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "GoogleSansCode",
+                  ),
+                ),
+                const Text(' '),
+                GestureDetector(
+                  child: Text(
+                    'Logs',
                     style: TextStyle(
-                      color: context.colorScheme.onSurfaceSecondary,
+                      color: context.primaryColor,
                       fontWeight: FontWeight.bold,
                       fontFamily: "GoogleSansCode",
                     ),
                   ),
-                  const Text(' '),
-                  GestureDetector(
-                    child: Text(
-                      'Logs',
-                      style: TextStyle(
-                        color: context.primaryColor,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: "GoogleSansCode",
-                      ),
-                    ),
-                    onTap: () {
-                      unawaited(context.pushRoute(const AppLogRoute()));
-                    },
-                  ),
-                ],
-              ),
+                  onTap: () {
+                    unawaited(context.pushRoute(const AppLogRoute()));
+                  },
+                ),
+              ],
             ),
           ),
         ),

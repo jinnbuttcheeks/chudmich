@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/timeline.state.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 
 class BaseBottomSheet extends ConsumerStatefulWidget {
   final List<Widget> actions;
@@ -73,7 +73,7 @@ class _BaseDraggableScrollableSheetState extends ConsumerState<BaseBottomSheet> 
       expand: widget.expand,
       shouldCloseOnMinExtent: widget.shouldCloseOnMinExtent,
       builder: (BuildContext context, ScrollController scrollController) {
-        // The glass extends below the screen edge so only the top corners read as rounded.
+        // The sheet surface extends below the screen edge so only the top corners read as rounded.
         return Stack(
           clipBehavior: Clip.none,
           children: [
@@ -82,7 +82,7 @@ class _BaseDraggableScrollableSheetState extends ConsumerState<BaseBottomSheet> 
               right: 0,
               top: 0,
               bottom: -48,
-              child: GlassSurface(variant: GlassVariant.thick, essential: true, radius: 32, child: SizedBox.expand()),
+              child: SolidSurface(radius: SolidTokens.radiusSheet, floating: true, child: SizedBox.expand()),
             ),
             Column(
               children: [
@@ -132,7 +132,7 @@ class _DragHandle extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(20)),
-              color: context.glass.inkSecondary.withValues(alpha: 0.5),
+              color: context.solid.muted.withValues(alpha: 0.5),
             ),
           ),
         ),

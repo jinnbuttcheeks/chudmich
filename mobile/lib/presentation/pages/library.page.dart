@@ -16,7 +16,7 @@ import 'package:immich_mobile/providers/infrastructure/user.provider.dart';
 import 'package:immich_mobile/providers/server_info.provider.dart';
 import 'package:immich_mobile/providers/user.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:immich_mobile/utils/image_url_builder.dart';
 import 'package:immich_mobile/widgets/common/immich_sliver_app_bar.dart';
 import 'package:immich_mobile/widgets/map/map_thumbnail.dart';
@@ -30,23 +30,19 @@ class LibraryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: AmbientBackground(
-        child: GlassLightScrollDriver(
-          child: CustomScrollView(
-            slivers: [
-              ImmichSliverAppBar(
-                snap: false,
-                floating: false,
-                pinned: true,
-                showUploadButton: false,
-                largeTitle: context.t.library$,
-              ),
-              const _LibraryDashboard(),
-              const _QuickAccessButtonList(),
-              const BottomInsetSliver(extra: 16),
-            ],
+      body: CustomScrollView(
+        slivers: [
+          ImmichSliverAppBar(
+            snap: false,
+            floating: false,
+            pinned: true,
+            showUploadButton: false,
+            largeTitle: context.t.library$,
           ),
-        ),
+          const _LibraryDashboard(),
+          const _QuickAccessButtonList(),
+          const BottomInsetSliver(extra: 16),
+        ],
       ),
     );
   }
@@ -162,8 +158,7 @@ class _LibraryDashboard extends ConsumerWidget {
   }
 }
 
-/// Glass card of the dashboard. Cards sit in a scrolling list, so they use
-/// fake glass (tinted gradients) rather than a backdrop filter.
+/// Card of the dashboard: a flat accent tinted surface with a hairline border.
 @visibleForTesting
 class LibraryBentoCard extends StatelessWidget {
   const LibraryBentoCard({
@@ -188,17 +183,16 @@ class LibraryBentoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.glass;
+    final tokens = context.solid;
     final textTheme = Theme.of(context).textTheme;
     return PressScale(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: GlassSurface(
-          blur: false,
-          shadow: false,
+        child: SolidSurface(
+          floating: false,
           radius: 28,
-          tint: Color.alphaBlend(hue.withValues(alpha: tokens.isDark ? 0.20 : 0.16), tokens.tint),
+          color: Color.alphaBlend(hue.withValues(alpha: tokens.isDark ? 0.20 : 0.16), tokens.paper),
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -217,7 +211,7 @@ class LibraryBentoCard extends StatelessWidget {
                     if (compact || constraints.maxHeight < 72) {
                       return Row(
                         children: [
-                          GlassIconBadge(icon: icon, color: hue, size: compact ? 36 : 32),
+                          SolidIconBadge(icon: icon, color: hue, size: compact ? 36 : 32),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -227,14 +221,14 @@ class LibraryBentoCard extends StatelessWidget {
                               style: textTheme.titleSmall?.copyWith(color: tokens.ink, height: 1.1),
                             ),
                           ),
-                          if (compact) Icon(Icons.chevron_right_rounded, color: tokens.inkSecondary),
+                          if (compact) Icon(Icons.chevron_right_rounded, color: tokens.mutedStrong),
                         ],
                       );
                     }
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        GlassIconBadge(icon: icon, color: hue, size: hero ? 44 : 36),
+                        SolidIconBadge(icon: icon, color: hue, size: hero ? 44 : 36),
                         const Spacer(),
                         Text(
                           title,
@@ -248,7 +242,7 @@ class LibraryBentoCard extends StatelessWidget {
                         if (subtitle != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 2),
-                            child: Text(subtitle!, style: textTheme.bodySmall?.copyWith(color: tokens.inkSecondary)),
+                            child: Text(subtitle!, style: textTheme.bodySmall?.copyWith(color: tokens.mutedStrong)),
                           ),
                       ],
                     );
@@ -273,7 +267,7 @@ class LibraryAvatarStack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.glass;
+    final tokens = context.solid;
     const overlap = size * 0.62;
     return SizedBox(
       width: size + overlap * (children.length - 1).clamp(0, 99),
@@ -372,20 +366,19 @@ class LibraryWideCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.glass;
+    final tokens = context.solid;
     return PressScale(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: GlassSurface(
-          blur: false,
-          shadow: false,
+        child: SolidSurface(
+          floating: false,
           radius: 28,
-          tint: Color.alphaBlend(hue.withValues(alpha: tokens.isDark ? 0.20 : 0.16), tokens.tint),
+          color: Color.alphaBlend(hue.withValues(alpha: tokens.isDark ? 0.20 : 0.16), tokens.paper),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           child: Row(
             children: [
-              GlassIconBadge(icon: icon, color: hue, size: 40),
+              SolidIconBadge(icon: icon, color: hue, size: 40),
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
@@ -464,29 +457,29 @@ class _QuickAccessButtonList extends ConsumerWidget {
     final partners = ref.watch(sharedWithPartnerProvider).valueOrNull ?? [];
 
     return SliverToBoxAdapter(
-      child: GlassGroup(
+      child: SolidGroup(
         margin: const EdgeInsets.fromLTRB(16, 20, 16, 12),
         children: [
-          GlassGroupTile(
+          SolidGroupTile(
             icon: Icons.folder_rounded,
             iconColor: const Color(0xFF5E9BFF),
             title: context.t.folders,
             onTap: () => context.pushRoute(FolderRoute()),
           ),
-          GlassGroupTile(
+          SolidGroupTile(
             icon: Icons.lock_rounded,
             iconColor: const Color(0xFF8E8E93),
             title: context.t.locked_folder,
             onTap: () => context.pushRoute(const LockedFolderRoute()),
           ),
-          GlassGroupTile(
+          SolidGroupTile(
             icon: Icons.group_rounded,
             iconColor: const Color(0xFF30B0C7),
             title: context.t.partners,
             onTap: () => context.pushRoute(const PartnerRoute()),
           ),
           for (final partner in partners)
-            GlassGroupTile(
+            SolidGroupTile(
               leading: PartnerUserAvatar(userId: partner.id, name: partner.name),
               title: context.t.partner_list_user_photos(user: partner.name),
               onTap: () => context.pushRoute(PartnerDetailRoute(partner: partner)),

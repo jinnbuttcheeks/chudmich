@@ -17,7 +17,7 @@ import 'package:immich_mobile/providers/infrastructure/current_album.provider.da
 import 'package:immich_mobile/providers/infrastructure/readonly_mode.provider.dart';
 import 'package:immich_mobile/providers/routes.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:immich_mobile/utils/timezone.dart';
 import 'package:immich_ui/immich_ui.dart';
 
@@ -68,7 +68,7 @@ class ViewerTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
     final lockedViewActions = <Widget>[ViewerKebabMenu(originalTheme: originalTheme)];
 
-    return GlassReveal(
+    return SolidReveal(
       visible: showingControls,
       opacity: backgroundOpacity,
       offset: const Offset(0, -20),
@@ -103,9 +103,8 @@ class ViewerTopAppBar extends ConsumerWidget implements PreferredSizeWidget {
                     leading: const _AppBarBackButton(),
                     middle: showingDetails ? null : _AssetInfoTitle(asset: asset),
                     trailing: !showingDetails && !isReadonlyModeEnabled
-                        ? GlassSurface(
-                            variant: GlassVariant.thin,
-                            tint: GlassTokens.overPhoto,
+                        ? SolidSurface(
+                            color: SolidTokens.overPhoto,
                             radius: 26,
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: ImmichColorOverride(
@@ -137,12 +136,11 @@ class _AppBarBackButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final showingDetails = ref.watch(assetViewerProvider.select((state) => state.showingDetails));
-    return GlassIconButton(
+    return SolidIconButton(
       icon: Icons.arrow_back_rounded,
       onPressed: context.maybePop,
-      tint: showingDetails ? null : GlassTokens.overPhoto,
+      fill: showingDetails ? null : SolidTokens.overPhoto,
       color: showingDetails ? null : Colors.white,
-      blur: false,
     );
   }
 }
@@ -162,11 +160,9 @@ class _AssetInfoTitle extends ConsumerWidget {
     final dateFormatted = dateTime.formatDate();
     final timeFormatted = dateTime.formatTime(alwaysUse24HourFormat: alwaysUse24HourFormat);
 
-    return GlassSurface(
-      variant: GlassVariant.thin,
-      tint: GlassTokens.overPhoto,
-      blur: false,
-      shadow: false,
+    return SolidSurface(
+      color: SolidTokens.overPhoto,
+      floating: false,
       radius: 20,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       child: Column(

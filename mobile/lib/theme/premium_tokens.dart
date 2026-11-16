@@ -92,7 +92,6 @@ class PremiumTokens extends ThemeExtension<PremiumTokens> {
   static const double navBarHeight = 64;
   static const double navBarGap = 12;
   static const double navBarHorizontalMargin = 20;
-  static const double blurSigma = 22;
 
   // Press feedback
   static const double pressedScale = 0.97;

@@ -19,7 +19,7 @@ import 'package:immich_mobile/presentation/widgets/navigation/floating_nav_bar.d
 import 'package:immich_mobile/presentation/widgets/timeline/header.widget.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/scrubber.widget.dart';
 import 'package:immich_mobile/providers/infrastructure/timeline.provider.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:immich_mobile/theme/theme_data.dart';
 import 'package:immich_mobile/widgets/common/confirm_dialog.dart';
 import 'package:mocktail/mocktail.dart';
@@ -167,12 +167,12 @@ void main() {
   // Only renders when SCREENSHOT_DIR is set.
   final skip = _outDir == null;
 
-  testWidgets('photos timeline with glass bars', (tester) async {
+  testWidgets('photos timeline with solid bars', (tester) async {
     await _shoot(tester, context, 'photos', (b) {
       return Stack(
         fit: StackFit.expand,
         children: [
-          Builder(builder: (c) => ColoredBox(color: c.glass.canvas)),
+          Builder(builder: (c) => ColoredBox(color: c.solid.canvas)),
           const _PhotoGrid(top: 150),
           Positioned(
             top: 0,
@@ -182,7 +182,7 @@ void main() {
               height: 110,
               child: Stack(
                 children: [
-                  const GlassBar(),
+                  const SolidBar(),
                   Builder(
                     builder: (c) => Padding(
                       padding: const EdgeInsets.fromLTRB(20, 56, 20, 0),
@@ -190,12 +190,11 @@ void main() {
                         children: [
                           Text('immich', style: c.textThemeLarge),
                           const Spacer(),
-                          const GlassIconButton(
+                          const SolidIconButton(
                             icon: Icons.cloud_done_rounded,
                             onPressed: null,
                             size: 38,
                             iconSize: 20,
-                            blur: false,
                           ),
                         ],
                       ),
@@ -240,7 +239,7 @@ void main() {
       return Stack(
         fit: StackFit.expand,
         children: [
-          Builder(builder: (c) => ColoredBox(color: c.glass.canvas)),
+          Builder(builder: (c) => ColoredBox(color: c.solid.canvas)),
           Column(
             children: [
               const SizedBox(height: 70),
@@ -313,198 +312,189 @@ void main() {
 
   testWidgets('library dashboard', (tester) async {
     await _shoot(tester, context, 'library', (b) {
-      return AmbientBackground(
-        child: Builder(
-          builder: (c) {
-            const gap = 12.0;
-            const unit = (393 - 32 - gap) / 2;
-            const small = (unit - gap) / 2;
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(16, 70, 16, 0),
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 4, bottom: 16),
-                  child: Text('Library', style: c.textThemeLarge?.copyWith(fontSize: 36)),
-                ),
-                SizedBox(
-                  height: unit,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: LibraryBentoCard(
-                          hue: LibraryHue.favorites,
-                          icon: Icons.favorite_rounded,
-                          title: 'Favorites',
-                          hero: true,
-                          onTap: () {},
-                        ),
+      return Builder(
+        builder: (c) {
+          const gap = 12.0;
+          const unit = (393 - 32 - gap) / 2;
+          const small = (unit - gap) / 2;
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 70, 16, 0),
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 16),
+                child: Text('Library', style: c.textThemeLarge?.copyWith(fontSize: 36)),
+              ),
+              SizedBox(
+                height: unit,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: LibraryBentoCard(
+                        hue: LibraryHue.favorites,
+                        icon: Icons.favorite_rounded,
+                        title: 'Favorites',
+                        hero: true,
+                        onTap: () {},
                       ),
-                      const SizedBox(width: gap),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Expanded(
-                              child: LibraryBentoCard(
-                                hue: LibraryHue.archive,
-                                icon: Icons.inventory_2_rounded,
-                                title: 'Archive',
-                                onTap: () {},
-                              ),
+                    ),
+                    const SizedBox(width: gap),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: LibraryBentoCard(
+                              hue: LibraryHue.archive,
+                              icon: Icons.inventory_2_rounded,
+                              title: 'Archive',
+                              onTap: () {},
                             ),
-                            const SizedBox(height: gap),
-                            Expanded(
-                              child: LibraryBentoCard(
-                                hue: LibraryHue.links,
-                                icon: Icons.link_rounded,
-                                title: 'Shared links',
-                                onTap: () {},
-                              ),
+                          ),
+                          const SizedBox(height: gap),
+                          Expanded(
+                            child: LibraryBentoCard(
+                              hue: LibraryHue.links,
+                              icon: Icons.link_rounded,
+                              title: 'Shared links',
+                              onTap: () {},
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: gap),
-                SizedBox(
-                  height: small + 8,
-                  child: LibraryWideCard(
-                    hue: LibraryHue.people,
-                    icon: Icons.face_retouching_natural_rounded,
-                    title: 'People',
-                    onTap: () {},
-                    trailing: LibraryAvatarStack(children: [for (var i = 0; i < 4; i++) _FakePhoto(i + 90)]),
-                  ),
+              ),
+              const SizedBox(height: gap),
+              SizedBox(
+                height: small + 8,
+                child: LibraryWideCard(
+                  hue: LibraryHue.people,
+                  icon: Icons.face_retouching_natural_rounded,
+                  title: 'People',
+                  onTap: () {},
+                  trailing: LibraryAvatarStack(children: [for (var i = 0; i < 4; i++) _FakePhoto(i + 90)]),
                 ),
-                const SizedBox(height: gap),
-                SizedBox(
-                  height: unit * 0.82,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: LibraryBentoCard(
-                          hue: LibraryHue.places,
-                          icon: Icons.place_rounded,
-                          title: 'Places',
-                          onTap: () {},
-                        ),
+              ),
+              const SizedBox(height: gap),
+              SizedBox(
+                height: unit * 0.82,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: LibraryBentoCard(
+                        hue: LibraryHue.places,
+                        icon: Icons.place_rounded,
+                        title: 'Places',
+                        onTap: () {},
                       ),
-                      const SizedBox(width: gap),
-                      Expanded(
-                        child: LibraryBentoCard(
-                          hue: LibraryHue.device,
-                          icon: Icons.smartphone_rounded,
-                          title: 'On this device',
-                          subtitle: '14',
-                          onTap: () {},
-                        ),
+                    ),
+                    const SizedBox(width: gap),
+                    Expanded(
+                      child: LibraryBentoCard(
+                        hue: LibraryHue.device,
+                        icon: Icons.smartphone_rounded,
+                        title: 'On this device',
+                        subtitle: '14',
+                        onTap: () {},
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: gap),
-                SizedBox(
-                  height: small + 8,
-                  child: LibraryWideCard(
-                    hue: LibraryHue.memories,
-                    icon: Icons.auto_awesome_rounded,
-                    title: 'Memories',
-                    onTap: () {},
-                    trailing: LibraryAvatarStack(children: [for (var i = 0; i < 4; i++) _FakePhoto(i + 120)]),
-                  ),
+              ),
+              const SizedBox(height: gap),
+              SizedBox(
+                height: small + 8,
+                child: LibraryWideCard(
+                  hue: LibraryHue.memories,
+                  icon: Icons.auto_awesome_rounded,
+                  title: 'Memories',
+                  onTap: () {},
+                  trailing: LibraryAvatarStack(children: [for (var i = 0; i < 4; i++) _FakePhoto(i + 120)]),
                 ),
-              ],
-            );
-          },
-        ),
+              ),
+            ],
+          );
+        },
       );
     });
   }, skip: skip);
 
   testWidgets('albums grid', (tester) async {
     await _shoot(tester, context, 'albums', (b) {
-      return AmbientBackground(
-        child: Builder(
-          builder: (c) {
-            Widget card(String name, int n, int seed) => ClipRSuperellipse(
-              borderRadius: BorderRadius.circular(28),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  _FakePhoto(seed),
-                  Positioned(
-                    left: 8,
-                    right: 8,
-                    bottom: 8,
-                    child: GlassSurface(
-                      blur: false,
-                      shadow: false,
-                      variant: GlassVariant.thick,
-                      radius: 20,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(name, style: c.textThemeTitle),
-                          Text(
-                            '$n items • Owned',
-                            style: Theme.of(c).textTheme.labelMedium?.copyWith(color: c.glass.inkSecondary),
-                          ),
-                        ],
-                      ),
+      return Builder(
+        builder: (c) {
+          Widget card(String name, int n, int seed) => ClipRSuperellipse(
+            borderRadius: BorderRadius.circular(28),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _FakePhoto(seed),
+                Positioned(
+                  left: 8,
+                  right: 8,
+                  bottom: 8,
+                  child: SolidSurface(
+                    radius: 20,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(name, style: c.textThemeTitle),
+                        Text(
+                          '$n items • Owned',
+                          style: Theme.of(c).textTheme.labelMedium?.copyWith(color: c.solid.mutedStrong),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            );
-            return ListView(
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 70, 16, 0),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 4, bottom: 14),
-                  child: Text('Albums', style: c.textThemeLarge?.copyWith(fontSize: 36)),
-                ),
-                const GlassSurface(
-                  blur: false,
-                  shadow: false,
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Row(children: [Icon(Icons.search_rounded), SizedBox(width: 12), Text('Search albums')]),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    GlassChip(label: 'All', selected: true, onTap: () {}),
-                    const SizedBox(width: 8),
-                    GlassChip(label: 'Shared with me', selected: false, onTap: () {}),
-                    const SizedBox(width: 8),
-                    GlassChip(label: 'My albums', selected: false, onTap: () {}),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  childAspectRatio: 0.82,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    card('Iceland 2026', 214, 7),
-                    card('Family', 1042, 11),
-                    card('Roadtrip', 88, 23),
-                    card('Pets', 530, 31),
-                  ],
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          );
+          return ListView(
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 70, 16, 0),
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 14),
+                child: Text('Albums', style: c.textThemeLarge?.copyWith(fontSize: 36)),
+              ),
+              const SolidSurface(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Row(children: [Icon(Icons.search_rounded), SizedBox(width: 12), Text('Search albums')]),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  SolidChip(label: 'All', selected: true, onTap: () {}),
+                  const SizedBox(width: 8),
+                  SolidChip(label: 'Shared with me', selected: false, onTap: () {}),
+                  const SizedBox(width: 8),
+                  SolidChip(label: 'My albums', selected: false, onTap: () {}),
+                ],
+              ),
+              const SizedBox(height: 14),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                childAspectRatio: 0.82,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  card('Iceland 2026', 214, 7),
+                  card('Family', 1042, 11),
+                  card('Roadtrip', 88, 23),
+                  card('Pets', 530, 31),
+                ],
+              ),
+            ],
+          );
+        },
       );
     });
   }, skip: skip);
@@ -523,17 +513,14 @@ void main() {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const GlassIconButton(
+                  const SolidIconButton(
                     icon: Icons.arrow_back_rounded,
                     onPressed: null,
-                    tint: GlassTokens.overPhoto,
+                    fill: SolidTokens.overPhoto,
                     color: Colors.white,
-                    blur: false,
                   ),
-                  GlassSurface(
-                    variant: GlassVariant.thin,
-                    tint: GlassTokens.overPhoto,
-                    blur: false,
+                  SolidSurface(
+                    color: SolidTokens.overPhoto,
                     radius: 20,
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     child: Column(
@@ -549,9 +536,8 @@ void main() {
                       ],
                     ),
                   ),
-                  const GlassSurface(
-                    variant: GlassVariant.thin,
-                    tint: GlassTokens.overPhoto,
+                  const SolidSurface(
+                    color: SolidTokens.overPhoto,
                     radius: 26,
                     padding: EdgeInsets.symmetric(horizontal: 10, vertical: 11),
                     child: Row(
@@ -570,8 +556,8 @@ void main() {
             left: 16,
             right: 16,
             bottom: 34,
-            child: GlassSurface(
-              tint: GlassTokens.overPhoto,
+            child: SolidSurface(
+              color: SolidTokens.overPhoto,
               radius: 32,
               padding: EdgeInsets.symmetric(vertical: 14),
               child: Row(
@@ -592,79 +578,77 @@ void main() {
 
   testWidgets('settings groups', (tester) async {
     await _shoot(tester, context, 'settings', (b) {
-      return AmbientBackground(
-        child: Builder(
-          builder: (c) => ListView(
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.only(top: 70),
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                child: Text('Settings', style: c.textThemeLarge?.copyWith(fontSize: 36)),
-              ),
-              const GlassGroup(
-                margin: EdgeInsets.fromLTRB(16, 0, 16, 12),
-                children: [
-                  GlassGroupTile(
-                    leading: CircleAvatar(radius: 26, child: Text('A')),
-                    title: 'Alex Morgan',
-                    subtitle: 'alex@example.com',
-                    trailing: SizedBox.shrink(),
-                  ),
-                ],
-              ),
-              GlassGroup(
-                children: [
-                  GlassGroupTile(
-                    icon: Icons.cloud_upload_outlined,
-                    iconColor: const Color(0xFF34C759),
-                    title: 'Backup',
-                    subtitle: 'Back up photos and videos',
-                    onTap: () {},
-                  ),
-                  GlassGroupTile(
-                    icon: Icons.cleaning_services_outlined,
-                    iconColor: const Color(0xFFFF9F0A),
-                    title: 'Free up space',
-                    subtitle: 'Remove backed up media',
-                    onTap: () {},
-                  ),
-                  GlassGroupTile(
-                    icon: Icons.sync_outlined,
-                    iconColor: const Color(0xFF64D2FF),
-                    title: 'Sync status',
-                    subtitle: 'Server sync state',
-                    onTap: () {},
-                  ),
-                ],
-              ),
-              GlassGroup(
-                children: [
-                  GlassGroupTile(
-                    icon: Icons.interests_outlined,
-                    iconColor: const Color(0xFFFF375F),
-                    title: 'Preferences',
-                    subtitle: 'Theme, colours and layout',
-                    onTap: () {},
-                  ),
-                  GlassGroupTile(
-                    icon: Icons.language,
-                    iconColor: const Color(0xFF5E5CE6),
-                    title: 'Language',
-                    subtitle: 'Choose your language',
-                    onTap: () {},
-                  ),
-                  GlassGroupTile(
-                    icon: Icons.notifications_none_rounded,
-                    iconColor: const Color(0xFFFF453A),
-                    title: 'Notifications',
-                    subtitle: 'Manage notifications',
-                    onTap: () {},
-                  ),
-                ],
-              ),
-            ],
-          ),
+      return Builder(
+        builder: (c) => ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(top: 70),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+              child: Text('Settings', style: c.textThemeLarge?.copyWith(fontSize: 36)),
+            ),
+            const SolidGroup(
+              margin: EdgeInsets.fromLTRB(16, 0, 16, 12),
+              children: [
+                SolidGroupTile(
+                  leading: CircleAvatar(radius: 26, child: Text('A')),
+                  title: 'Alex Morgan',
+                  subtitle: 'alex@example.com',
+                  trailing: SizedBox.shrink(),
+                ),
+              ],
+            ),
+            SolidGroup(
+              children: [
+                SolidGroupTile(
+                  icon: Icons.cloud_upload_outlined,
+                  iconColor: const Color(0xFF34C759),
+                  title: 'Backup',
+                  subtitle: 'Back up photos and videos',
+                  onTap: () {},
+                ),
+                SolidGroupTile(
+                  icon: Icons.cleaning_services_outlined,
+                  iconColor: const Color(0xFFFF9F0A),
+                  title: 'Free up space',
+                  subtitle: 'Remove backed up media',
+                  onTap: () {},
+                ),
+                SolidGroupTile(
+                  icon: Icons.sync_outlined,
+                  iconColor: const Color(0xFF64D2FF),
+                  title: 'Sync status',
+                  subtitle: 'Server sync state',
+                  onTap: () {},
+                ),
+              ],
+            ),
+            SolidGroup(
+              children: [
+                SolidGroupTile(
+                  icon: Icons.interests_outlined,
+                  iconColor: const Color(0xFFFF375F),
+                  title: 'Preferences',
+                  subtitle: 'Theme, colours and layout',
+                  onTap: () {},
+                ),
+                SolidGroupTile(
+                  icon: Icons.language,
+                  iconColor: const Color(0xFF5E5CE6),
+                  title: 'Language',
+                  subtitle: 'Choose your language',
+                  onTap: () {},
+                ),
+                SolidGroupTile(
+                  icon: Icons.notifications_none_rounded,
+                  iconColor: const Color(0xFFFF453A),
+                  title: 'Notifications',
+                  subtitle: 'Manage notifications',
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ],
         ),
       );
     });
@@ -704,7 +688,7 @@ void main() {
     });
   }, skip: skip);
 
-  testWidgets('glass specimens', (tester) async {
+  testWidgets('solid specimens', (tester) async {
     await _shoot(tester, context, 'material', (b) {
       return Stack(
         fit: StackFit.expand,
@@ -715,30 +699,31 @@ void main() {
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(24, 90, 24, 0),
               children: [
-                for (final v in [GlassVariant.thin, GlassVariant.regular, GlassVariant.thick]) ...[
-                  GlassSurface(
-                    variant: v,
-                    radius: 28,
+                for (final v in ['paper', 'panel', 'floating']) ...[
+                  SolidSurface(
+                    floating: v == 'floating',
+                    color: v == 'panel' ? c.solid.panel : null,
+                    radius: SolidTokens.radiusCard,
                     padding: const EdgeInsets.all(20),
-                    child: Text(v.name, style: c.textThemeTitle),
+                    child: Text(v, style: c.textThemeTitle),
                   ),
                   const SizedBox(height: 18),
                 ],
                 Row(
                   children: [
-                    GlassButton(label: 'Share', icon: Icons.ios_share_rounded, onPressed: () {}),
+                    SolidButton(label: 'Share', icon: Icons.ios_share_rounded, onPressed: () {}),
                     const SizedBox(width: 12),
-                    GlassButton(label: 'Backup', prominent: true, onPressed: () {}),
+                    SolidButton(label: 'Backup', prominent: true, onPressed: () {}),
                     const SizedBox(width: 12),
-                    const GlassIconButton(icon: Icons.favorite_rounded, onPressed: null),
+                    const SolidIconButton(icon: Icons.favorite_rounded, onPressed: null),
                   ],
                 ),
                 const SizedBox(height: 18),
                 Row(
                   children: [
-                    GlassChip(label: 'People', selected: true, onTap: () {}),
+                    SolidChip(label: 'People', selected: true, onTap: () {}),
                     const SizedBox(width: 8),
-                    GlassChip(label: 'Places', selected: false, onTap: () {}),
+                    SolidChip(label: 'Places', selected: false, onTap: () {}),
                   ],
                 ),
               ],
@@ -751,6 +736,6 @@ void main() {
 }
 
 extension on BuildContext {
-  TextStyle? get textThemeLarge => Theme.of(this).textTheme.headlineLarge?.copyWith(color: glass.ink);
-  TextStyle? get textThemeTitle => Theme.of(this).textTheme.titleSmall?.copyWith(color: glass.ink);
+  TextStyle? get textThemeLarge => Theme.of(this).textTheme.headlineLarge?.copyWith(color: solid.ink);
+  TextStyle? get textThemeTitle => Theme.of(this).textTheme.titleSmall?.copyWith(color: solid.ink);
 }

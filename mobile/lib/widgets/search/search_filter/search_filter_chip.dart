@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/presentation/widgets/common/press_scale.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 
 class SearchFilterChip extends StatelessWidget {
   final String label;
@@ -13,7 +13,7 @@ class SearchFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.glass;
+    final tokens = context.solid;
     final active = currentFilter != null;
     final fg = active ? (tokens.isDark ? Colors.black : Colors.white) : tokens.ink;
     return Padding(
@@ -21,12 +21,10 @@ class SearchFilterChip extends StatelessWidget {
       child: PressScale(
         child: GestureDetector(
           onTap: onTap,
-          child: GlassSurface(
-            variant: GlassVariant.thin,
-            blur: false,
-            shadow: false,
+          child: SolidSurface(
+            floating: false,
             radius: 999,
-            tint: active ? tokens.accent : null,
+            color: active ? tokens.accent : null,
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
             child: Row(
               children: [

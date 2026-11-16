@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/extensions/theme_extensions.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 
 class SearchField extends StatelessWidget {
   const SearchField({
@@ -17,7 +17,6 @@ class SearchField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.filled = false,
-    this.blur = false,
   });
 
   final FocusNode? focusNode;
@@ -32,15 +31,10 @@ class SearchField extends StatelessWidget {
   final bool autofocus;
   final bool filled;
 
-  /// Whether the glass behind the field blurs its backdrop (uses a layer from the glass budget).
-  final bool blur;
-
   @override
   Widget build(BuildContext context) {
-    return GlassSurface(
-      blur: blur,
-      shadow: blur,
-      radius: 24,
+    return SolidSurface(
+      radius: SolidTokens.radius,
       child: TextField(
         controller: controller,
         autofocus: autofocus,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
 import 'package:immich_mobile/generated/translations.g.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 
 class ConfirmDialog extends StatelessWidget {
   final Function? onOk;
@@ -19,14 +19,12 @@ class ConfirmDialog extends StatelessWidget {
       context.pop(true);
     }
 
-    final tokens = context.glass;
+    final tokens = context.solid;
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
       insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-      child: GlassSurface(
-        variant: GlassVariant.thick,
-        essential: true,
+      child: SolidSurface(
         radius: 32,
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
         child: Column(
@@ -35,7 +33,7 @@ class ConfirmDialog extends StatelessWidget {
           children: [
             Text(title, style: context.textTheme.titleMedium?.copyWith(color: tokens.ink, fontSize: 20)),
             const SizedBox(height: 10),
-            Text(content, style: context.textTheme.bodyMedium?.copyWith(color: tokens.inkSecondary)),
+            Text(content, style: context.textTheme.bodyMedium?.copyWith(color: tokens.mutedStrong)),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,

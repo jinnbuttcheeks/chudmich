@@ -15,7 +15,7 @@ import 'package:immich_mobile/providers/locale_provider.dart';
 import 'package:immich_mobile/providers/user.provider.dart';
 import 'package:immich_mobile/providers/websocket.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:immich_mobile/utils/bytes_units.dart';
 import 'package:immich_mobile/widgets/common/app_bar_dialog/app_bar_profile_info.dart';
 import 'package:immich_mobile/widgets/common/app_bar_dialog/app_bar_server_info.dart';
@@ -265,9 +265,7 @@ class ImmichAppBarDialog extends HookConsumerWidget {
           right: horizontalPadding,
           bottom: isHorizontal ? 20 : 100,
         ),
-        child: GlassSurface(
-          variant: GlassVariant.thick,
-          essential: true,
+        child: SolidSurface(
           radius: 34,
           child: SingleChildScrollView(
             child: Column(
@@ -276,16 +274,15 @@ class ImmichAppBarDialog extends HookConsumerWidget {
                 Container(padding: const EdgeInsets.symmetric(horizontal: 8), child: buildTopRow()),
                 Padding(
                   padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
-                  child: GlassSurface(
-                    blur: false,
-                    shadow: false,
+                  child: SolidSurface(
+                    floating: false,
                     radius: 24,
                     child: Column(
                       children: [
                         const AppBarProfileInfoBox(),
-                        Divider(thickness: 0.5, height: 0.5, color: context.glass.ink.withValues(alpha: 0.1)),
+                        Divider(thickness: 0.5, height: 0.5, color: context.solid.ink.withValues(alpha: 0.1)),
                         buildStorageInformation(),
-                        Divider(thickness: 0.5, height: 0.5, color: context.glass.ink.withValues(alpha: 0.1)),
+                        Divider(thickness: 0.5, height: 0.5, color: context.solid.ink.withValues(alpha: 0.1)),
                         const AppBarServerInfo(),
                       ],
                     ),

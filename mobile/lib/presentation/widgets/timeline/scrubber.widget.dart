@@ -12,7 +12,7 @@ import 'package:immich_mobile/presentation/widgets/timeline/constants.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/segment.model.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/timeline.state.dart';
 import 'package:immich_mobile/providers/haptic_feedback.provider.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 part 'scrubber.widget.freezed.dart';
@@ -340,7 +340,7 @@ class ScrubberState extends ConsumerState<Scrubber> with TickerProviderStateMixi
       label = labelText != null
           ? Text(
               labelText,
-              style: ctx.textTheme.titleMedium?.copyWith(color: ctx.glass.ink, fontWeight: FontWeight.w700),
+              style: ctx.textTheme.titleMedium?.copyWith(color: ctx.solid.ink, fontWeight: FontWeight.w700),
             )
           : null;
     }
@@ -413,14 +413,12 @@ class _SegmentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.glass;
+    final tokens = context.solid;
     return IgnorePointer(
       child: Padding(
         padding: const EdgeInsets.only(right: 40.0),
-        child: GlassSurface(
-          variant: GlassVariant.thin,
-          blur: false,
-          shadow: false,
+        child: SolidSurface(
+          floating: false,
           radius: 14,
           padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4),
           child: Text(
@@ -453,10 +451,7 @@ class _ScrollLabel extends StatelessWidget {
           alignment: Alignment.centerRight,
           child: Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: GlassSurface(
-              variant: GlassVariant.thick,
-              // Moves with the grid under the finger: dense static glass, never a live blur.
-              blur: false,
+            child: SolidSurface(
               radius: 22,
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
               child: label,
@@ -491,23 +486,21 @@ class _Scrubber extends StatelessWidget {
   }
 }
 
-/// The round glass thumb with its arrows.
+/// The round solid thumb with its arrows.
 @visibleForTesting
 class ScrubberHandle extends StatelessWidget {
   const ScrubberHandle({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.glass;
+    final tokens = context.solid;
     return Padding(
       padding: const EdgeInsets.only(right: 4.0),
       child: CustomPaint(
         key: ScrubberArrowPainter.paintKey,
         foregroundPainter: ScrubberArrowPainter(tokens.ink),
-        child: const GlassSurface(
+        child: const SolidSurface(
           key: ScrubberArrowPainter.handleKey,
-          variant: GlassVariant.regular,
-          blur: false,
           radius: 16,
           child: SizedBox(width: 32, height: kScrubberThumbHeight),
         ),

@@ -14,7 +14,7 @@ import 'package:immich_mobile/providers/asset_viewer/asset_viewer.provider.dart'
 import 'package:immich_mobile/providers/infrastructure/readonly_mode.provider.dart';
 import 'package:immich_mobile/providers/infrastructure/timeline.provider.dart';
 import 'package:immich_mobile/providers/routes.provider.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:immich_mobile/widgets/asset_viewer/video_controls.dart';
 import 'package:immich_ui/immich_ui.dart';
 
@@ -99,8 +99,8 @@ class ViewerBottomBar extends ConsumerWidget {
                           if (!isReadonlyModeEnabled)
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                              child: GlassSurface(
-                                tint: GlassTokens.overPhoto,
+                              child: SolidSurface(
+                                color: SolidTokens.overPhoto,
                                 radius: 32,
                                 padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                                 child: ImmichColorOverride(

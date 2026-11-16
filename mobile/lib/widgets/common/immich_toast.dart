@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:immich_mobile/extensions/build_context_extensions.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 
 enum ToastType { info, success, error }
 
@@ -29,8 +29,7 @@ class ImmichToast {
     };
 
     fToast.showToast(
-      child: GlassSurface(
-        essential: true,
+      child: SolidSurface(
         radius: 24,
         padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 13.0),
         child: Row(

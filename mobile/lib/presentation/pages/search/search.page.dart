@@ -25,7 +25,7 @@ import 'package:immich_mobile/providers/infrastructure/timeline.provider.dart';
 import 'package:immich_mobile/providers/search/search_input_focus.provider.dart';
 import 'package:immich_mobile/providers/server_info.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:immich_mobile/utils/image_url_builder.dart';
 import 'package:immich_mobile/widgets/common/feature_check.dart';
 import 'package:immich_mobile/widgets/common/search_field.dart';
@@ -514,213 +514,208 @@ class SearchPage extends HookConsumerWidget {
       TextSearchType.ocr => Icons.document_scanner_outlined,
     };
 
-    return AmbientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          automaticallyImplyLeading: true,
-          toolbarHeight: 72,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: MenuAnchor(
-                style: MenuStyle(
-                  elevation: const WidgetStatePropertyAll(0),
-                  backgroundColor: WidgetStatePropertyAll(context.glass.tint.withValues(alpha: 0.94)),
-                  surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-                  shape: WidgetStateProperty.all(
-                    RoundedSuperellipseBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      side: BorderSide(color: context.glass.highlight.withValues(alpha: 0.2), width: 0.8),
-                    ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        automaticallyImplyLeading: true,
+        toolbarHeight: 72,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: MenuAnchor(
+              style: MenuStyle(
+                elevation: const WidgetStatePropertyAll(0),
+                backgroundColor: WidgetStatePropertyAll(context.solid.paper.withValues(alpha: 0.94)),
+                surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+                shape: WidgetStateProperty.all(
+                  RoundedSuperellipseBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    side: BorderSide(color: context.solid.border.withValues(alpha: 0.2), width: 0.8),
                   ),
-                  padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
                 ),
-                builder: (BuildContext context, MenuController controller, Widget? child) {
-                  return GlassIconButton(
-                    onPressed: () {
-                      if (controller.isOpen) {
-                        controller.close();
-                      } else {
-                        controller.open();
-                      }
-                    },
-                    icon: Icons.more_vert_rounded,
-                    size: 46,
-                    tooltip: context.t.show_text_search_menu,
-                  );
-                },
-                menuChildren: [
-                  FeatureCheck(
-                    feature: (features) => features.smartSearch,
-                    child: MenuItemButton(
-                      child: ListTile(
-                        leading: const Icon(Icons.image_search_rounded),
-                        title: Text(
-                          context.t.search_by_context,
-                          style: context.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            color: textSearchType == TextSearchType.context ? context.colorScheme.primary : null,
-                          ),
-                        ),
-                        selectedColor: context.colorScheme.primary,
-                        selected: textSearchType == TextSearchType.context,
-                      ),
-                      onPressed: () {
-                        selectedTextSearchType.value = TextSearchType.context;
-                      },
-                    ),
-                  ),
-                  MenuItemButton(
+                padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
+              ),
+              builder: (BuildContext context, MenuController controller, Widget? child) {
+                return SolidIconButton(
+                  onPressed: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
+                  icon: Icons.more_vert_rounded,
+                  size: 46,
+                  tooltip: context.t.show_text_search_menu,
+                );
+              },
+              menuChildren: [
+                FeatureCheck(
+                  feature: (features) => features.smartSearch,
+                  child: MenuItemButton(
                     child: ListTile(
-                      leading: const Icon(Icons.abc_rounded),
+                      leading: const Icon(Icons.image_search_rounded),
                       title: Text(
-                        context.t.search_filter_filename,
+                        context.t.search_by_context,
                         style: context.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w500,
-                          color: textSearchType == TextSearchType.filename ? context.colorScheme.primary : null,
+                          color: textSearchType == TextSearchType.context ? context.colorScheme.primary : null,
                         ),
                       ),
                       selectedColor: context.colorScheme.primary,
-                      selected: textSearchType == TextSearchType.filename,
+                      selected: textSearchType == TextSearchType.context,
                     ),
                     onPressed: () {
-                      selectedTextSearchType.value = TextSearchType.filename;
+                      selectedTextSearchType.value = TextSearchType.context;
                     },
                   ),
-                  MenuItemButton(
+                ),
+                MenuItemButton(
+                  child: ListTile(
+                    leading: const Icon(Icons.abc_rounded),
+                    title: Text(
+                      context.t.search_filter_filename,
+                      style: context.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: textSearchType == TextSearchType.filename ? context.colorScheme.primary : null,
+                      ),
+                    ),
+                    selectedColor: context.colorScheme.primary,
+                    selected: textSearchType == TextSearchType.filename,
+                  ),
+                  onPressed: () {
+                    selectedTextSearchType.value = TextSearchType.filename;
+                  },
+                ),
+                MenuItemButton(
+                  child: ListTile(
+                    leading: const Icon(Icons.text_snippet_outlined),
+                    title: Text(
+                      context.t.search_by_description,
+                      style: context.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: textSearchType == TextSearchType.description ? context.colorScheme.primary : null,
+                      ),
+                    ),
+                    selectedColor: context.colorScheme.primary,
+                    selected: textSearchType == TextSearchType.description,
+                  ),
+                  onPressed: () {
+                    selectedTextSearchType.value = TextSearchType.description;
+                  },
+                ),
+                FeatureCheck(
+                  feature: (features) => features.ocr,
+                  child: MenuItemButton(
                     child: ListTile(
-                      leading: const Icon(Icons.text_snippet_outlined),
+                      leading: const Icon(Icons.document_scanner_outlined),
                       title: Text(
-                        context.t.search_by_description,
+                        context.t.search_by_ocr,
                         style: context.textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w500,
-                          color: textSearchType == TextSearchType.description ? context.colorScheme.primary : null,
+                          color: textSearchType == TextSearchType.ocr ? context.colorScheme.primary : null,
                         ),
                       ),
                       selectedColor: context.colorScheme.primary,
-                      selected: textSearchType == TextSearchType.description,
+                      selected: textSearchType == TextSearchType.ocr,
                     ),
                     onPressed: () {
-                      selectedTextSearchType.value = TextSearchType.description;
+                      selectedTextSearchType.value = TextSearchType.ocr;
                     },
                   ),
-                  FeatureCheck(
-                    feature: (features) => features.ocr,
-                    child: MenuItemButton(
-                      child: ListTile(
-                        leading: const Icon(Icons.document_scanner_outlined),
-                        title: Text(
-                          context.t.search_by_ocr,
-                          style: context.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            color: textSearchType == TextSearchType.ocr ? context.colorScheme.primary : null,
-                          ),
-                        ),
-                        selectedColor: context.colorScheme.primary,
-                        selected: textSearchType == TextSearchType.ocr,
-                      ),
-                      onPressed: () {
-                        selectedTextSearchType.value = TextSearchType.ocr;
-                      },
+                ),
+              ],
+            ),
+          ),
+        ],
+        title: SearchField(
+          hintText: searchHintText,
+          key: const Key('search_text_field'),
+          controller: textSearchController,
+          contentPadding: filter.value.assetId != null ? const EdgeInsets.only(left: 24) : const EdgeInsets.all(8),
+          prefixIcon: filter.value.assetId != null
+              ? null
+              : Icon(getSearchPrefixIcon(), color: context.colorScheme.primary),
+          onSubmitted: handleTextSubmitted,
+          focusNode: ref.watch(searchInputFocusProvider),
+        ),
+      ),
+      body: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.only(top: 12.0, bottom: 4.0),
+            sliver: SliverToBoxAdapter(
+              child: SizedBox(
+                height: 50,
+                child: ListView(
+                  key: const Key('search_filter_chip_list'),
+                  shrinkWrap: true,
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    SearchFilterChip(
+                      icon: Icons.people_alt_outlined,
+                      onTap: showPeoplePicker,
+                      label: context.t.people,
+                      currentFilter: peopleCurrentFilterWidget.value,
                     ),
-                  ),
-                ],
+                    SearchFilterChip(
+                      icon: Icons.location_on_outlined,
+                      onTap: showLocationPicker,
+                      label: context.t.search_filter_location,
+                      currentFilter: locationCurrentFilterWidget.value,
+                    ),
+                    if (userPreferences?.tagsEnabled ?? false)
+                      SearchFilterChip(
+                        icon: Icons.sell_outlined,
+                        onTap: showTagPicker,
+                        label: context.t.tags,
+                        currentFilter: tagCurrentFilterWidget.value,
+                      ),
+                    SearchFilterChip(
+                      icon: Icons.camera_alt_outlined,
+                      onTap: showCameraPicker,
+                      label: context.t.camera,
+                      currentFilter: cameraCurrentFilterWidget.value,
+                    ),
+                    SearchFilterChip(
+                      icon: Icons.date_range_outlined,
+                      onTap: showQuickDatePicker,
+                      label: context.t.search_filter_date,
+                      currentFilter: dateRangeCurrentFilterWidget.value,
+                    ),
+                    SearchFilterChip(
+                      key: const Key('media_type_chip'),
+                      icon: Icons.video_collection_outlined,
+                      onTap: showMediaTypePicker,
+                      label: context.t.search_filter_media_type,
+                      currentFilter: mediaTypeCurrentFilterWidget.value,
+                    ),
+                    if (userPreferences?.ratingsEnabled ?? false)
+                      SearchFilterChip(
+                        icon: Icons.star_outline_rounded,
+                        onTap: showStarRatingPicker,
+                        label: context.t.search_filter_star_rating,
+                        currentFilter: ratingCurrentFilterWidget.value,
+                      ),
+                    SearchFilterChip(
+                      icon: Icons.display_settings_outlined,
+                      onTap: showDisplayOptionPicker,
+                      label: context.t.search_filter_display_options,
+                      currentFilter: displayOptionCurrentFilterWidget.value,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-          title: SearchField(
-            hintText: searchHintText,
-            key: const Key('search_text_field'),
-            controller: textSearchController,
-            contentPadding: filter.value.assetId != null ? const EdgeInsets.only(left: 24) : const EdgeInsets.all(8),
-            prefixIcon: filter.value.assetId != null
-                ? null
-                : Icon(getSearchPrefixIcon(), color: context.colorScheme.primary),
-            onSubmitted: handleTextSubmitted,
-            focusNode: ref.watch(searchInputFocusProvider),
-            blur: true,
           ),
-        ),
-        body: GlassLightScrollDriver(
-          child: CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 12.0, bottom: 4.0),
-                sliver: SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 50,
-                    child: ListView(
-                      key: const Key('search_filter_chip_list'),
-                      shrinkWrap: true,
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      children: [
-                        SearchFilterChip(
-                          icon: Icons.people_alt_outlined,
-                          onTap: showPeoplePicker,
-                          label: context.t.people,
-                          currentFilter: peopleCurrentFilterWidget.value,
-                        ),
-                        SearchFilterChip(
-                          icon: Icons.location_on_outlined,
-                          onTap: showLocationPicker,
-                          label: context.t.search_filter_location,
-                          currentFilter: locationCurrentFilterWidget.value,
-                        ),
-                        if (userPreferences?.tagsEnabled ?? false)
-                          SearchFilterChip(
-                            icon: Icons.sell_outlined,
-                            onTap: showTagPicker,
-                            label: context.t.tags,
-                            currentFilter: tagCurrentFilterWidget.value,
-                          ),
-                        SearchFilterChip(
-                          icon: Icons.camera_alt_outlined,
-                          onTap: showCameraPicker,
-                          label: context.t.camera,
-                          currentFilter: cameraCurrentFilterWidget.value,
-                        ),
-                        SearchFilterChip(
-                          icon: Icons.date_range_outlined,
-                          onTap: showQuickDatePicker,
-                          label: context.t.search_filter_date,
-                          currentFilter: dateRangeCurrentFilterWidget.value,
-                        ),
-                        SearchFilterChip(
-                          key: const Key('media_type_chip'),
-                          icon: Icons.video_collection_outlined,
-                          onTap: showMediaTypePicker,
-                          label: context.t.search_filter_media_type,
-                          currentFilter: mediaTypeCurrentFilterWidget.value,
-                        ),
-                        if (userPreferences?.ratingsEnabled ?? false)
-                          SearchFilterChip(
-                            icon: Icons.star_outline_rounded,
-                            onTap: showStarRatingPicker,
-                            label: context.t.search_filter_star_rating,
-                            currentFilter: ratingCurrentFilterWidget.value,
-                          ),
-                        SearchFilterChip(
-                          icon: Icons.display_settings_outlined,
-                          onTap: showDisplayOptionPicker,
-                          label: context.t.search_filter_display_options,
-                          currentFilter: displayOptionCurrentFilterWidget.value,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              if (filter.value.isEmpty)
-                const _SearchSuggestions()
-              else
-                _SearchResultGrid(onScrollEnd: () => loadMoreSearchResults()),
-              const BottomInsetSliver(extra: 16),
-            ],
-          ),
-        ),
+          if (filter.value.isEmpty)
+            const _SearchSuggestions()
+          else
+            _SearchResultGrid(onScrollEnd: () => loadMoreSearchResults()),
+          const BottomInsetSliver(extra: 16),
+        ],
       ),
     );
   }
@@ -850,7 +845,7 @@ class _SearchSuggestions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.glass;
+    final tokens = context.solid;
     return SliverList.list(
       children: [
         Padding(
@@ -864,7 +859,7 @@ class _SearchSuggestions extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
           child: Text(
             context.t.search_page_search_photos_videos,
-            style: context.textTheme.bodyLarge?.copyWith(color: tokens.inkSecondary),
+            style: context.textTheme.bodyLarge?.copyWith(color: tokens.mutedStrong),
           ),
         ),
         const _PeopleRail(),
@@ -884,7 +879,7 @@ class _PeopleRail extends ConsumerWidget {
     if (people.isEmpty) {
       return const SizedBox.shrink();
     }
-    final tokens = context.glass;
+    final tokens = context.solid;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -911,7 +906,7 @@ class _PeopleRail extends ConsumerWidget {
                         DecoratedBox(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: tokens.highlight.withValues(alpha: 0.5), width: 1.5),
+                            border: Border.all(color: tokens.border.withValues(alpha: 0.5), width: 1.5),
                           ),
                           child: ClipOval(
                             child: Image(
@@ -929,7 +924,7 @@ class _PeopleRail extends ConsumerWidget {
                           person.name.isEmpty ? context.t.no_name : person.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: context.textTheme.labelMedium?.copyWith(color: tokens.inkSecondary),
+                          style: context.textTheme.labelMedium?.copyWith(color: tokens.mutedStrong),
                         ),
                       ],
                     ),
@@ -984,20 +979,19 @@ class _QuickLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.glass;
+    final tokens = context.solid;
     return PressScale(
       child: GestureDetector(
         onTap: onTap,
-        child: GlassSurface(
-          blur: false,
-          shadow: false,
+        child: SolidSurface(
+          floating: false,
           radius: 24,
-          tint: Color.alphaBlend(hue.withValues(alpha: tokens.isDark ? 0.18 : 0.14), tokens.tint),
+          color: Color.alphaBlend(hue.withValues(alpha: tokens.isDark ? 0.18 : 0.14), tokens.paper),
           padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GlassIconBadge(icon: icon, color: hue, size: 36),
+              SolidIconBadge(icon: icon, color: hue, size: 36),
               const SizedBox(height: 22),
               Text(title, style: context.textTheme.titleSmall?.copyWith(color: tokens.ink)),
             ],

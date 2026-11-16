@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:immich_mobile/presentation/widgets/timeline/scrubber.widget.dart';
-import 'package:immich_mobile/theme/glass/glass_tokens.dart';
+import 'package:immich_mobile/theme/solid/solid_tokens.dart';
 
 void main() {
   Widget host({required Brightness brightness, required double textScale}) {
     final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF4250AF), brightness: brightness);
     return MaterialApp(
-      theme: ThemeData(colorScheme: scheme, extensions: [GlassTokens.fromScheme(scheme)]),
+      theme: ThemeData(colorScheme: scheme, extensions: [SolidTokens.fromScheme(scheme)]),
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale)),
         child: child!,

@@ -18,7 +18,7 @@ import 'package:immich_mobile/providers/sync_status.provider.dart';
 import 'package:immich_mobile/providers/timeline/multiselect.provider.dart';
 import 'package:immich_mobile/providers/user.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:immich_mobile/widgets/asset_viewer/cast_dialog.dart';
 import 'package:immich_mobile/widgets/common/app_bar_dialog/app_bar_dialog.dart';
 import 'package:immich_mobile/widgets/common/user_circle_avatar.dart';
@@ -33,7 +33,7 @@ class ImmichSliverAppBar extends ConsumerWidget {
   final double? expandedHeight;
 
   /// When set, the bar shows this as a large display title that collapses into
-  /// the glass toolbar while scrolling. Requires [pinned].
+  /// the solid toolbar while scrolling. Requires [pinned].
   final String? largeTitle;
 
   const ImmichSliverAppBar({
@@ -68,7 +68,7 @@ class ImmichSliverAppBar extends ConsumerWidget {
           pinned: pinned,
           snap: snap,
           expandedHeight: largeTitle == null ? expandedHeight : (expandedHeight ?? _kLargeTitleExtent),
-          flexibleSpace: GlassAppBarBackground(largeTitle: largeTitle, pinned: pinned),
+          flexibleSpace: SolidAppBarBackground(largeTitle: largeTitle, pinned: pinned),
           automaticallyImplyLeading: false,
           centerTitle: false,
           title: largeTitle != null ? null : (title ?? const _ImmichLogoWithText()),
@@ -92,11 +92,11 @@ class ImmichSliverAppBar extends ConsumerWidget {
 
 const double _kLargeTitleExtent = kToolbarHeight + 62;
 
-/// Flexible space of the glass app bar: glass condenses in as the content
+/// Flexible space of the app bar: a solid background condenses in as the content
 /// scrolls under it and a large title collapses into the toolbar.
 @visibleForTesting
-class GlassAppBarBackground extends StatelessWidget {
-  const GlassAppBarBackground({super.key, required this.largeTitle, required this.pinned});
+class SolidAppBarBackground extends StatelessWidget {
+  const SolidAppBarBackground({super.key, required this.largeTitle, required this.pinned});
 
   final String? largeTitle;
   final bool pinned;
@@ -104,7 +104,7 @@ class GlassAppBarBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
-    final tokens = context.glass;
+    final tokens = context.solid;
     var collapse = pinned ? 0.0 : 1.0;
     if (settings != null && settings.maxExtent > settings.minExtent) {
       collapse = (1 - (settings.currentExtent - settings.minExtent) / (settings.maxExtent - settings.minExtent)).clamp(
@@ -123,7 +123,7 @@ class GlassAppBarBackground extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        GlassBar(condense: condense),
+        SolidBar(condense: condense),
         if (title != null)
           Positioned(
             left: 20,

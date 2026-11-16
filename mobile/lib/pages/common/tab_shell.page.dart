@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/constants/constants.dart';
 import 'package:immich_mobile/domain/models/events.model.dart';
@@ -28,6 +30,27 @@ class TabShellPage extends ConsumerStatefulWidget {
 }
 
 class _TabShellPageState extends ConsumerState<TabShellPage> {
+  /// False while the user scrolls down: the floating bar slides away, and returns on scroll up.
+  final ValueNotifier<bool> _navVisible = ValueNotifier(true);
+
+  @override
+  void dispose() {
+    _navVisible.dispose();
+    super.dispose();
+  }
+
+  bool _onScroll(UserScrollNotification n) {
+    if (n.depth != 0 || n.metrics.axis != Axis.vertical) {
+      return false;
+    }
+    if (n.direction == ScrollDirection.reverse) {
+      _navVisible.value = false;
+    } else if (n.direction == ScrollDirection.forward || n.metrics.extentBefore == 0) {
+      _navVisible.value = true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isScreenLandscape = context.orientation == Orientation.landscape;
@@ -103,16 +126,23 @@ class _TabShellPageState extends ConsumerState<TabShellPage> {
             resizeToAvoidBottomInset: false,
             // Content scrolls behind the floating bar; MediaQuery bottom padding grows by the bar's height.
             extendBody: true,
-            body: isScreenLandscape
-                ? Row(
-                    children: [
-                      navigationRail(tabsRouter),
-                      const VerticalDivider(),
-                      Expanded(child: child),
-                    ],
-                  )
-                : child,
-            bottomNavigationBar: _BottomNavigationBar(tabsRouter: tabsRouter, items: navigationItems),
+            body: NotificationListener<UserScrollNotification>(
+              onNotification: _onScroll,
+              child: isScreenLandscape
+                  ? Row(
+                      children: [
+                        navigationRail(tabsRouter),
+                        const VerticalDivider(),
+                        Expanded(child: child),
+                      ],
+                    )
+                  : child,
+            ),
+            bottomNavigationBar: _BottomNavigationBar(
+              tabsRouter: tabsRouter,
+              items: navigationItems,
+              visible: _navVisible,
+            ),
           ),
         );
       },
@@ -150,10 +180,11 @@ void _onNavigationSelected(TabsRouter router, int index, WidgetRef ref) {
 }
 
 class _BottomNavigationBar extends ConsumerStatefulWidget {
-  const _BottomNavigationBar({required this.tabsRouter, required this.items});
+  const _BottomNavigationBar({required this.tabsRouter, required this.items, required this.visible});
 
   final List<FloatingNavItem> items;
   final TabsRouter tabsRouter;
+  final ValueListenable<bool> visible;
 
   @override
   ConsumerState createState() => _BottomNavigationBarState();
@@ -189,10 +220,14 @@ class _BottomNavigationBarState extends ConsumerState<_BottomNavigationBar> {
       return const SizedBox.shrink();
     }
 
-    return FloatingNavBar(
-      items: widget.items,
-      selectedIndex: widget.tabsRouter.activeIndex,
-      onSelected: (index) => _onNavigationSelected(widget.tabsRouter, index, ref),
+    return ValueListenableBuilder<bool>(
+      valueListenable: widget.visible,
+      builder: (context, visible, _) => FloatingNavBar(
+        items: widget.items,
+        selectedIndex: widget.tabsRouter.activeIndex,
+        visible: visible,
+        onSelected: (index) => _onNavigationSelected(widget.tabsRouter, index, ref),
+      ),
     );
   }
 }

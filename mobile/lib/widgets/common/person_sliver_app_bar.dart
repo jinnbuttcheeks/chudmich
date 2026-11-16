@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -196,23 +195,18 @@ class _ExpandedBackgroundState extends ConsumerState<_ExpandedBackground> with S
             child: RandomAssetBackgroundImage(timelineService: timelineService),
           ),
         ),
-        ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: widget.scrollProgress * 2.0, sigmaY: widget.scrollProgress * 2.0),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.05),
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.3),
-                    Colors.black.withValues(alpha: 0.6 + (widget.scrollProgress * 0.25)),
-                  ],
-                  stops: const [0.0, 0.15, 0.55, 1.0],
-                ),
-              ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withValues(alpha: 0.05),
+                Colors.transparent,
+                Colors.black.withValues(alpha: 0.3),
+                Colors.black.withValues(alpha: 0.6 + (widget.scrollProgress * 0.25)),
+              ],
+              stops: const [0.0, 0.15, 0.55, 1.0],
             ),
           ),
         ),

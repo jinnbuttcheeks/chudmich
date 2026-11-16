@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:immich_mobile/constants/locales.dart';
 import 'package:immich_mobile/extensions/theme_extensions.dart';
-import 'package:immich_mobile/theme/glass/glass_tokens.dart';
 import 'package:immich_mobile/theme/premium_tokens.dart';
+import 'package:immich_mobile/theme/solid/solid_tokens.dart';
 
 class ImmichTheme {
   final ColorScheme light;
@@ -14,57 +14,57 @@ class ImmichTheme {
 
 ThemeData getThemeData({required ColorScheme colorScheme, required Locale locale}) {
   final isDark = colorScheme.brightness == Brightness.dark;
-  final glass = GlassTokens.fromScheme(colorScheme);
-  final rim = BorderSide(color: glass.highlight.withValues(alpha: isDark ? 0.16 : 0.7), width: 0.8);
+  final solid = SolidTokens.fromScheme(colorScheme);
+  final font = _getFontFamilyFromLocale(locale);
+  final border = solid.hairline;
+  const fieldRadius = BorderRadius.all(Radius.circular(SolidTokens.radius));
+  const cardRadius = BorderRadius.all(Radius.circular(SolidTokens.radiusCard));
 
   return ThemeData(
     useMaterial3: true,
-    extensions: [PremiumTokens.fromScheme(colorScheme), glass],
+    extensions: [PremiumTokens.fromScheme(colorScheme), solid],
     brightness: colorScheme.brightness,
     colorScheme: colorScheme,
     primaryColor: colorScheme.primary,
     hintColor: colorScheme.onSurfaceSecondary,
     focusColor: colorScheme.primary,
-    scaffoldBackgroundColor: glass.canvas,
-    splashColor: colorScheme.primary.withValues(alpha: 0.1),
-    highlightColor: colorScheme.primary.withValues(alpha: 0.1),
+    scaffoldBackgroundColor: solid.canvas,
+    splashColor: solid.subtleHover,
+    highlightColor: solid.subtle,
     bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor: glass.tint.withValues(alpha: isDark ? 0.90 : 0.92),
-      modalBackgroundColor: glass.tint.withValues(alpha: isDark ? 0.90 : 0.92),
+      backgroundColor: solid.paper,
+      modalBackgroundColor: solid.paper,
       surfaceTintColor: Colors.transparent,
       showDragHandle: false,
-      shape: RoundedSuperellipseBorder(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(PremiumTokens.radiusSheet + 6)),
-        side: rim,
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(SolidTokens.radiusSheet)),
+        side: border,
       ),
     ),
-    fontFamily: _getFontFamilyFromLocale(locale),
+    fontFamily: font,
     snackBarTheme: SnackBarThemeData(
-      contentTextStyle: TextStyle(
-        fontFamily: _getFontFamilyFromLocale(locale),
-        color: colorScheme.primary,
-        fontWeight: FontWeight.bold,
-      ),
-      backgroundColor: glass.tint.withValues(alpha: isDark ? 0.94 : 0.96),
+      contentTextStyle: TextStyle(fontFamily: font, color: solid.inkStrong, fontWeight: FontWeight.w600),
+      backgroundColor: solid.paper,
       behavior: SnackBarBehavior.floating,
       elevation: 0,
-      shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(20), side: rim),
+      shape: RoundedRectangleBorder(borderRadius: cardRadius, side: border),
     ),
     appBarTheme: AppBarTheme(
       titleTextStyle: TextStyle(
-        color: colorScheme.primary,
-        fontFamily: _getFontFamilyFromLocale(locale),
-        fontWeight: FontWeight.w600,
+        color: solid.inkStrong,
+        fontFamily: font,
+        fontWeight: FontWeight.w700,
         fontSize: 18,
+        letterSpacing: -0.3,
       ),
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
-      foregroundColor: colorScheme.primary,
+      foregroundColor: solid.ink,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
     ),
-    // Slightly tightened tracking on larger sizes keeps headings crisp.
+    // AIOStreams type scale: tight tracking, heavy headings, medium weight labels.
     textTheme: const TextTheme(
       displayLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: -0.3),
       displayMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
@@ -72,29 +72,38 @@ ThemeData getThemeData({required ColorScheme colorScheme, required Locale locale
       titleSmall: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600, letterSpacing: -0.1),
       titleMedium: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w700, letterSpacing: -0.35),
       titleLarge: TextStyle(fontSize: 28.0, fontWeight: FontWeight.w700, letterSpacing: -0.9),
-      headlineSmall: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w700, letterSpacing: -0.7),
+      headlineSmall: TextStyle(fontSize: 24.0, fontWeight: FontWeight.w600, letterSpacing: -0.6),
       headlineMedium: TextStyle(fontSize: 30.0, fontWeight: FontWeight.w700, letterSpacing: -0.9),
       headlineLarge: TextStyle(fontSize: 36.0, fontWeight: FontWeight.w800, letterSpacing: -1.2),
+      labelLarge: TextStyle(fontWeight: FontWeight.w500),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: colorScheme.primary,
-        foregroundColor: isDark ? Colors.black87 : Colors.white,
-        shape: const StadiumBorder(),
+        backgroundColor: solid.accentFill,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: fieldRadius,
+          side: BorderSide(color: solid.accentBorder),
+        ),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(shape: const StadiumBorder(), padding: const EdgeInsets.symmetric(horizontal: 22)),
+      style: FilledButton.styleFrom(
+        shape: const RoundedRectangleBorder(borderRadius: fieldRadius),
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+      ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(shape: const StadiumBorder(), side: rim),
+      style: OutlinedButton.styleFrom(
+        shape: const RoundedRectangleBorder(borderRadius: fieldRadius),
+        side: border,
+      ),
     ),
-    textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(shape: const StadiumBorder())),
-    chipTheme: ChipThemeData(
-      side: rim,
-      shape: const StadiumBorder(),
-      backgroundColor: glass.tint.withValues(alpha: 0.5),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(shape: const RoundedRectangleBorder(borderRadius: fieldRadius)),
     ),
+    chipTheme: ChipThemeData(side: border, shape: const StadiumBorder(), backgroundColor: solid.panel),
     sliderTheme: const SliderThemeData(
       trackHeight: 12,
       // ignore: deprecated_member_use
@@ -102,52 +111,47 @@ ThemeData getThemeData({required ColorScheme colorScheme, required Locale locale
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(type: BottomNavigationBarType.fixed),
     popupMenuTheme: PopupMenuThemeData(
-      color: glass.tint.withValues(alpha: isDark ? 0.92 : 0.94),
+      color: solid.paper,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(18), side: rim),
+      shape: RoundedRectangleBorder(borderRadius: cardRadius, side: border),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: isDark ? colorScheme.surfaceContainer : colorScheme.surface,
+      backgroundColor: solid.paper,
       labelTextStyle: const WidgetStatePropertyAll(
         TextStyle(fontSize: 14, fontWeight: FontWeight.w500, overflow: TextOverflow.ellipsis),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: glass.tint.withValues(alpha: isDark ? 0.55 : 0.6),
+      fillColor: solid.panel,
       focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: colorScheme.primary, width: 1.4),
-        borderRadius: const BorderRadius.all(Radius.circular(18)),
+        borderSide: BorderSide(color: isDark ? AioPalette.brand200 : colorScheme.primary, width: 1.4),
+        borderRadius: fieldRadius,
       ),
-      enabledBorder: OutlineInputBorder(borderSide: rim, borderRadius: const BorderRadius.all(Radius.circular(18))),
+      enabledBorder: OutlineInputBorder(borderSide: border, borderRadius: fieldRadius),
       labelStyle: TextStyle(color: colorScheme.primary),
       hintStyle: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.normal),
     ),
     textSelectionTheme: TextSelectionThemeData(cursorColor: colorScheme.primary),
     dropdownMenuTheme: DropdownMenuThemeData(
       menuStyle: const MenuStyle(
-        shape: WidgetStatePropertyAll<OutlinedBorder>(
-          RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-        ),
+        shape: WidgetStatePropertyAll<OutlinedBorder>(RoundedRectangleBorder(borderRadius: fieldRadius)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: colorScheme.primary)),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: colorScheme.outlineVariant),
-          borderRadius: const BorderRadius.all(Radius.circular(15)),
-        ),
+        enabledBorder: OutlineInputBorder(borderSide: border, borderRadius: fieldRadius),
         labelStyle: TextStyle(color: colorScheme.primary),
         hintStyle: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.normal),
       ),
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: glass.tint.withValues(alpha: isDark ? 0.94 : 0.96),
+      backgroundColor: solid.paper,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(PremiumTokens.radiusLg + 4), side: rim),
+      shape: RoundedRectangleBorder(borderRadius: cardRadius, side: border),
     ),
     navigationRailTheme: NavigationRailThemeData(
       backgroundColor: Colors.transparent,
-      indicatorColor: colorScheme.primary.withValues(alpha: isDark ? 0.28 : 0.16),
+      indicatorColor: solid.subtleHover,
       indicatorShape: const StadiumBorder(),
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
@@ -166,11 +170,11 @@ ThemeData getThemeData({required ColorScheme colorScheme, required Locale locale
 ImmichTheme decolorizeSurfaces({required ImmichTheme theme}) {
   return ImmichTheme(
     light: theme.light.copyWith(
-      surface: const Color(0xFFF4F5F9),
-      onSurface: const Color(0xFF14151C),
-      surfaceContainerLowest: const Color(0xFFffffff),
-      surfaceContainerLow: const Color(0xFFf3f3f3),
-      surfaceContainer: const Color(0xFFeeeeee),
+      surface: AioPalette.lightBackground,
+      onSurface: AioPalette.gray800,
+      surfaceContainerLowest: AioPalette.lightPaper,
+      surfaceContainerLow: AioPalette.lightPanel,
+      surfaceContainer: AioPalette.lightRaised,
       surfaceContainerHigh: const Color(0xFFe8e8e8),
       surfaceContainerHighest: const Color(0xFFe2e2e2),
       surfaceDim: const Color(0xFFdadada),
@@ -180,18 +184,18 @@ ImmichTheme decolorizeSurfaces({required ImmichTheme theme}) {
       onInverseSurface: const Color(0xFFf1f1f1),
     ),
     dark: theme.dark.copyWith(
-      surface: const Color(0xFF090A0F),
-      onSurface: const Color(0xFFE9EAF2),
-      surfaceContainerLowest: const Color(0xFF05060A),
-      surfaceContainerLow: const Color(0xFF0F1118),
-      surfaceContainer: const Color(0xFF141621),
-      surfaceContainerHigh: const Color(0xFF1B1E2B),
-      surfaceContainerHighest: const Color(0xFF242837),
-      surfaceDim: const Color(0xFF090A0F),
-      surfaceBright: const Color(0xFF2E3243),
-      onSurfaceVariant: const Color(0xFFC3C6D6),
-      inverseSurface: const Color(0xFFE9EAF2),
-      onInverseSurface: const Color(0xFF2A2C38),
+      surface: AioPalette.background,
+      onSurface: AioPalette.gray200,
+      surfaceContainerLowest: AioPalette.background,
+      surfaceContainerLow: AioPalette.gray950,
+      surfaceContainer: AioPalette.gray900,
+      surfaceContainerHigh: AioPalette.gray800,
+      surfaceContainerHighest: const Color(0xFF262626),
+      surfaceDim: AioPalette.background,
+      surfaceBright: const Color(0xFF303030),
+      onSurfaceVariant: AioPalette.gray400,
+      inverseSurface: AioPalette.gray200,
+      onInverseSurface: AioPalette.gray900,
     ),
   );
 }

@@ -27,7 +27,7 @@ import 'package:immich_mobile/providers/view_intent/view_intent_handler.provider
 import 'package:immich_mobile/providers/websocket.provider.dart';
 import 'package:immich_mobile/repositories/permission.repository.dart';
 import 'package:immich_mobile/routing/router.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 import 'package:immich_mobile/utils/error_handler.dart';
 import 'package:immich_mobile/utils/provider_utils.dart';
 import 'package:immich_mobile/utils/semver.dart';
@@ -604,9 +604,7 @@ class LoginForm extends HookConsumerWidget {
 
                   // Note: This used to have an AnimatedSwitcher, but was removed
                   // because of https://github.com/flutter/flutter/issues/120874
-                  GlassSurface(
-                    variant: GlassVariant.thick,
-                    essential: true,
+                  SolidSurface(
                     radius: 32,
                     padding: const EdgeInsets.all(20),
                     child: Form(key: loginFormKey, child: serverSelectionOrLogin),

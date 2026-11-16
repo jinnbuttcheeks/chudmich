@@ -9,7 +9,6 @@ import 'package:immich_mobile/presentation/widgets/album/album_selector.widget.d
 import 'package:immich_mobile/presentation/widgets/common/bottom_inset_sliver.dart';
 import 'package:immich_mobile/providers/infrastructure/album.provider.dart';
 import 'package:immich_mobile/routing/router.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
 import 'package:immich_mobile/theme/premium_tokens.dart';
 import 'package:immich_mobile/widgets/common/immich_sliver_app_bar.dart';
 
@@ -65,30 +64,26 @@ class _AlbumsPageState extends ConsumerState<AlbumsPage> {
       ],
     );
 
-    return AmbientBackground(
-      child: GlassLightScrollDriver(
-        child: RefreshIndicator(
-          onRefresh: onRefresh,
-          edgeOffset: 100,
-          color: context.colorScheme.primary,
-          backgroundColor: context.premium.floatingSurface.withValues(alpha: 1),
-          elevation: 4,
-          child: showScrollbar
-              ? RawScrollbar(
-                  controller: _scrollController,
-                  interactive: true,
-                  thickness: 8,
-                  radius: const Radius.circular(4),
-                  thumbVisibility: false,
-                  thumbColor: context.colorScheme.primary,
-                  crossAxisMargin: 4,
-                  mainAxisMargin: 60,
-                  minThumbLength: 40,
-                  child: scrollView,
-                )
-              : scrollView,
-        ),
-      ),
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      edgeOffset: 100,
+      color: context.colorScheme.primary,
+      backgroundColor: context.premium.floatingSurface.withValues(alpha: 1),
+      elevation: 4,
+      child: showScrollbar
+          ? RawScrollbar(
+              controller: _scrollController,
+              interactive: true,
+              thickness: 8,
+              radius: const Radius.circular(4),
+              thumbVisibility: false,
+              thumbColor: context.colorScheme.primary,
+              crossAxisMargin: 4,
+              mainAxisMargin: 60,
+              minThumbLength: 40,
+              child: scrollView,
+            )
+          : scrollView,
     );
   }
 }

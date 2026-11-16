@@ -14,7 +14,7 @@ import 'package:immich_mobile/providers/haptic_feedback.provider.dart';
 import 'package:immich_mobile/providers/infrastructure/readonly_mode.provider.dart';
 import 'package:immich_mobile/providers/infrastructure/timeline.provider.dart';
 import 'package:immich_mobile/providers/timeline/multiselect.provider.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 
 class TimelineHeader extends HookWidget {
   final Bucket bucket;
@@ -44,7 +44,7 @@ class TimelineHeader extends HookWidget {
       return const SizedBox.shrink();
     }
 
-    final tokens = context.glass;
+    final tokens = context.solid;
     final date = (bucket as TimeBucket).date;
     final isMonthHeader = header == HeaderType.month || header == HeaderType.monthAndDay;
     final isDayHeader = header == HeaderType.day || header == HeaderType.monthAndDay;
@@ -78,7 +78,7 @@ class TimelineHeader extends HookWidget {
                         Text(
                           date.year.toString(),
                           style: textTheme.titleMedium?.copyWith(
-                            color: tokens.inkSecondary,
+                            color: tokens.mutedStrong,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -93,7 +93,7 @@ class TimelineHeader extends HookWidget {
                 padding: const EdgeInsets.only(bottom: 10, top: 1),
                 child: Text(
                   context.t.items_count(count: bucket.assetCount),
-                  style: textTheme.labelMedium?.copyWith(color: tokens.inkSecondary),
+                  style: textTheme.labelMedium?.copyWith(color: tokens.mutedStrong),
                 ),
               ),
             if (isDayHeader)
@@ -114,7 +114,7 @@ class TimelineHeader extends HookWidget {
                     const SizedBox(width: 10),
                     Text(
                       context.t.items_count(count: bucket.assetCount),
-                      style: textTheme.labelMedium?.copyWith(color: tokens.inkSecondary),
+                      style: textTheme.labelMedium?.copyWith(color: tokens.mutedStrong),
                     ),
                     const Spacer(),
                     _BulkSelectIconButton(bucket: bucket, assetOffset: assetOffset),

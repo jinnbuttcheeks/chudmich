@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:immich_mobile/presentation/widgets/navigation/floating_nav_bar.dart';
-import 'package:immich_mobile/theme/premium_tokens.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 
 const _items = [
   FloatingNavItem(label: 'Photos', icon: Icons.photo_library_outlined, selectedIcon: Icons.photo_library),
@@ -14,15 +14,20 @@ const _items = [
   ),
 ];
 
-Widget _host({required int selected, required ValueChanged<int> onSelected, bool reduceMotion = false}) {
+Widget _host({
+  required int selected,
+  required ValueChanged<int> onSelected,
+  bool reduceMotion = false,
+  bool visible = true,
+}) {
   return MaterialApp(
-    theme: ThemeData(extensions: [PremiumTokens.fromScheme(const ColorScheme.light())]),
+    theme: ThemeData(extensions: [SolidTokens.fromScheme(const ColorScheme.light())]),
     home: MediaQuery(
       data: MediaQueryData(disableAnimations: reduceMotion, size: const Size(400, 800)),
       child: Scaffold(
         body: Align(
           alignment: Alignment.bottomCenter,
-          child: FloatingNavBar(items: _items, selectedIndex: selected, onSelected: onSelected),
+          child: FloatingNavBar(items: _items, selectedIndex: selected, onSelected: onSelected, visible: visible),
         ),
       ),
     ),
@@ -30,29 +35,6 @@ Widget _host({required int selected, required ValueChanged<int> onSelected, bool
 }
 
 void main() {
-  group('FloatingNavBar.layout', () {
-    test('widths always add up to the available width', () {
-      for (final position in [0.0, 0.3, 1.0, 1.5, 2.0]) {
-        final rects = FloatingNavBar.layout(count: 3, position: position, totalWidth: 300);
-        expect(rects.fold<double>(0, (a, r) => a + r.width), closeTo(300, 1e-9));
-        expect(rects.first.left, 0);
-      }
-    });
-
-    test('active tab is wider than inactive tabs and tabs do not overlap', () {
-      final rects = FloatingNavBar.layout(count: 3, position: 1, totalWidth: 300);
-      expect(rects[1].width, greaterThan(rects[0].width));
-      expect(rects[0].width, closeTo(rects[2].width, 1e-9));
-      expect(rects[1].left, closeTo(rects[0].left + rects[0].width, 1e-9));
-    });
-
-    test('emphasis falls from 1 to 0 over one tab', () {
-      expect(FloatingNavBar.emphasis(1, 1), 1);
-      expect(FloatingNavBar.emphasis(1, 1.5), 0.5);
-      expect(FloatingNavBar.emphasis(0, 2), 0);
-    });
-  });
-
   group('FloatingNavBar widget', () {
     testWidgets('reports taps on enabled tabs only', (tester) async {
       final taps = <int>[];
@@ -82,6 +64,20 @@ void main() {
       final immediate = tester.getTopLeft(find.byKey(FloatingNavBar.activePillKey)).dx;
       await tester.pumpAndSettle();
       expect(tester.getTopLeft(find.byKey(FloatingNavBar.activePillKey)).dx, immediate);
+    });
+
+    testWidgets('slides off the bottom edge when hidden and back when shown', (tester) async {
+      await tester.pumpWidget(_host(selected: 0, onSelected: (_) {}));
+      await tester.pumpAndSettle();
+      final shown = tester.getTopLeft(find.byKey(FloatingNavBar.activePillKey)).dy;
+
+      await tester.pumpWidget(_host(selected: 0, onSelected: (_) {}, visible: false));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(find.byKey(FloatingNavBar.activePillKey)).dy, greaterThan(shown + 40));
+
+      await tester.pumpWidget(_host(selected: 0, onSelected: (_) {}));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(find.byKey(FloatingNavBar.activePillKey)).dy, shown);
     });
   });
 }

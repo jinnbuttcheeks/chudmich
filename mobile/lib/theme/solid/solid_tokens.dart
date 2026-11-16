@@ -125,6 +125,8 @@ class SolidTokens extends ThemeExtension<SolidTokens> {
     final dark = scheme.brightness == Brightness.dark;
     final onSurface = scheme.onSurface;
     final primary = scheme.primary;
+    // The default violet scheme keeps brand-400 for text and icons, but fills buttons with brand-500.
+    final fill = primary == AioPalette.brand400 ? AioPalette.brand500 : primary;
     final lightAccent = Color.lerp(primary, Colors.white, 0.35)!;
     return SolidTokens(
       brightness: scheme.brightness,
@@ -142,7 +144,7 @@ class SolidTokens extends ThemeExtension<SolidTokens> {
       subtleHover: dark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06),
       accent: primary,
       onAccent: scheme.onPrimary,
-      accentFill: dark ? primary.withValues(alpha: 0.7) : primary,
+      accentFill: dark ? fill.withValues(alpha: 0.7) : primary,
       accentBorder: dark ? lightAccent.withValues(alpha: 0.2) : Colors.transparent,
     );
   }

@@ -13,7 +13,7 @@ import 'package:immich_mobile/presentation/widgets/asset_viewer/asset_details/ra
 import 'package:immich_mobile/presentation/widgets/asset_viewer/asset_details/tag_details.widget.dart';
 import 'package:immich_mobile/presentation/widgets/asset_viewer/asset_details/technical_details.widget.dart';
 import 'package:immich_mobile/providers/infrastructure/asset_viewer/asset.provider.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 
 class AssetDetails extends ConsumerWidget {
   final BaseAsset asset;
@@ -27,9 +27,7 @@ class AssetDetails extends ConsumerWidget {
 
     return ConstrainedBox(
       constraints: BoxConstraints(minHeight: minHeight),
-      child: GlassSurface(
-        variant: GlassVariant.thick,
-        essential: true,
+      child: SolidSurface(
         radius: 32,
         child: SafeArea(
           top: false,

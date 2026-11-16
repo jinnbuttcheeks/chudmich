@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:immich_mobile/presentation/widgets/asset_viewer/bottom_bar.widget.dart';
 import 'package:immich_mobile/providers/asset_viewer/asset_viewer.provider.dart';
-import 'package:immich_mobile/theme/glass/glass.dart';
+import 'package:immich_mobile/theme/solid/solid.dart';
 
 class ViewerBottomAppBar extends ConsumerWidget {
   const ViewerBottomAppBar({super.key});
@@ -12,6 +12,6 @@ class ViewerBottomAppBar extends ConsumerWidget {
     final showingControls = ref.watch(assetViewerProvider.select((s) => s.showingControls));
     final double backgroundOpacity = ref.watch(assetViewerProvider.select((s) => s.backgroundOpacity));
 
-    return GlassReveal(visible: showingControls, opacity: backgroundOpacity, child: const ViewerBottomBar());
+    return SolidReveal(visible: showingControls, opacity: backgroundOpacity, child: const ViewerBottomBar());
   }
 }
