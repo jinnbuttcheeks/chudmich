@@ -23,10 +23,11 @@ Reference: github.com/Viren070/AIOStreams, `packages/web` (shell, nav, styles.cs
 ## Done
 
 - Handoff file created.
+- Task A diagnosis (goldfish + elephant) and fixes 1 and 2 below, with tests.
 
 ## In progress
 
-- Task A diagnosis.
+- Task A fix 3 (viewer chrome blur) is folded into Task B: the glass capsules over the video are removed with the glass system.
 
 ## Next steps
 
@@ -37,7 +38,11 @@ Reference: github.com/Viren070/AIOStreams, `packages/web` (shell, nav, styles.cs
 
 ## Video root-cause notes
 
-(none yet)
+Goldfish (symptom only) ranked: (1) live `BackdropFilter` glass capsules in the viewer top/bottom bars over the Android platform-view video surface, (2) native 8 ms position poll flooding Dart with ~125 channel calls/s plus platform-view lifecycle cost, (3) glass/ambient overhead (weak). Elephant (code reading) ranked: (1) `NativeVideoPlayerView` platform view created for every built video page, including the neighbour page that PageView builds as soon as a drag starts, (2) glass blur over the surface, (3) ambient ticker. Converged on the glass blur; the goldfish missed the neighbour-surface creation, the elephant missed the 8 ms poll. Both are real, so all are fixed.
+
+1. Neighbour surface creation (`lib/presentation/widgets/asset_viewer/video_viewer.widget.dart`, `_surfaceRequested`): the Android view is created via `PlatformViewsService.initSurfaceAndroidView` (main-thread) when the page is built mid-drag, and disposed when the page leaves. Fix: only request the surface once the page is current (current flips on scroll end, see `_onScrollEnd` in `asset_viewer.page.dart`); the thumbnail stands in until then. Tests: `test/presentation/widgets/asset_viewer/video_viewer_test.dart` group `paging` (red before the fix, green after).
+2. Position flood (`lib/providers/asset_viewer/video_player_provider.dart`, `shouldPublishPosition`, plus `!widget.isCurrent` early return in `_onPlaybackPositionChanged`): native poll runs every 8 ms; each change rebuilt the slider and time label and restarted the buffering timer. Fix: publish only when the position moved >= 100 ms, ignore ticks from non-current pages. Tests: `test/providers/asset_viewer/video_player_provider_test.dart`.
+3. Glass blur over video (viewer bars use `GlassSurface` with `BackdropFilter`): removed with the glass system in Task B. A test asserting no `BackdropFilter` in the viewer chrome lands with it.
 
 ## Test commands
 

@@ -35,6 +35,15 @@ final videoPlayerProvider = StateNotifierProvider.autoDispose.family<VideoPlayer
 class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
   static final _log = Logger('VideoPlayerNotifier');
 
+  /// The native player reports every position change from an 8 ms poll, up to about 125 channel calls per second.
+  /// Publishing each one rebuilds the slider and time label per call, so only changes of at least this much are
+  /// published. Seeks, pauses and completion take other paths and are not delayed.
+  static const positionPublishInterval = Duration(milliseconds: 100);
+
+  @visibleForTesting
+  static bool shouldPublishPosition(Duration published, Duration next) =>
+      (next - published).abs() >= positionPublishInterval || (next == Duration.zero && published != Duration.zero);
+
   VideoPlayerNotifier() : super(_defaultState);
 
   NativeVideoPlayerController? _controller;
@@ -218,7 +227,7 @@ class VideoPlayerNotifier extends StateNotifier<VideoPlayerState> {
     }
 
     final position = Duration(milliseconds: playbackInfo.position);
-    if (state.position == position) {
+    if (!shouldPublishPosition(state.position, position)) {
       return;
     }
 

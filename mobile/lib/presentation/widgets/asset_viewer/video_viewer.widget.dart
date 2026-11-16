@@ -50,6 +50,11 @@ class NativeVideoViewerState extends ConsumerState<NativeVideoViewer> with Widge
   bool _isVideoReady = false;
   bool _shouldPlayOnForeground = true;
 
+  // Creating (and later disposing) the native surface is a main-thread platform view call. PageView builds this
+  // widget for the neighbour page as soon as a drag starts, so the surface is only requested once the page has
+  // settled as the current one. Until then the thumbnail stands in, and the swipe stays on the Flutter thread.
+  late bool _surfaceRequested = widget.isCurrent;
+
   VideoPlayerNotifier get _notifier => ref.read(videoPlayerProvider(widget.asset.id).notifier);
 
   @override
@@ -62,6 +67,10 @@ class NativeVideoViewerState extends ConsumerState<NativeVideoViewer> with Widge
   @override
   void didUpdateWidget(NativeVideoViewer oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    if (widget.isCurrent && !_surfaceRequested) {
+      _surfaceRequested = true;
+    }
 
     if (widget.isCurrent == oldWidget.isCurrent || _controller == null) {
       return;
@@ -253,7 +262,7 @@ class NativeVideoViewerState extends ConsumerState<NativeVideoViewer> with Widge
   }
 
   void _onPlaybackPositionChanged() {
-    if (!mounted) {
+    if (!mounted || !widget.isCurrent) {
       return;
     }
     _notifier.onNativePositionChanged();
@@ -320,7 +329,7 @@ class NativeVideoViewerState extends ConsumerState<NativeVideoViewer> with Widge
     // the first frame after a platform view disappears. Animating this view away uses those disappearing frames. Instead, forcibly remove
     // the view from the tree when we start a route transition, which has the side effect of properly ordering the `dispose`
     final isRouteActive = ModalRoute.of(context)?.isActive ?? true;
-    final showPlayer = !isCasting && isRouteActive;
+    final showPlayer = !isCasting && isRouteActive && _surfaceRequested;
 
     return IgnorePointer(
       child: Stack(
